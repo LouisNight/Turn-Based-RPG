@@ -13,12 +13,12 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.louisnight.turnbasedrpg.TestRPG;
 import com.badlogic.gdx.Screen;
 
-public class MenuScreen implements Screen {
-    // storing orchestrator
+public class MainScreen implements Screen {
+
     private final TestRPG parent;
 
     // constructor with core/main argument
-    public MenuScreen(TestRPG testRPG) {
+    public MainScreen(TestRPG testRPG) {
         parent = testRPG;
 
         // setup user input using stage
@@ -27,12 +27,9 @@ public class MenuScreen implements Screen {
         stage.draw();
     }
 
-    private final Stage stage = new Stage(new ScreenViewport());
+    private final Stage stage = new Stage(new ScreenViewport());// storing orchestrator
 
-    private CharSequence preferences;
-    private CharSequence newGame;
-    private CharSequence exit;
-
+    private CharSequence fight;
 
 
     @Override
@@ -45,40 +42,10 @@ public class MenuScreen implements Screen {
         // adds buttons to Main Menu
         Skin skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
-        TextButton newGame = new TextButton("New Game", skin);
-        TextButton preferences = new TextButton("Preferences", skin);
-        TextButton exit = new TextButton("Exit", skin);
+        TextButton fight = new TextButton("Fight", skin);
 
-        // input from the buttons
-        newGame.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                ((Game) Gdx.app.getApplicationListener()).setScreen(new MainScreen(parent));
-            }
-        });
-
-        preferences.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                ((Game) Gdx.app.getApplicationListener()).setScreen(new PreferencesScreen(parent));
-            }
-        });
-
-        exit.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.exit();
-            }
-        });
-
-        // adds table to stage for Main Menu
-        table.add(newGame).fillX().uniformX();
+        table.add(fight).fillX().uniformX();
         table.row().pad(10, 0, 10, 0);
-        table.add(preferences).fillX().uniformX();
-        table.row();
-        table.add(exit).fillX().uniformX();
-
-
     }
 
     @Override
@@ -102,21 +69,21 @@ public class MenuScreen implements Screen {
 
     @Override
     public void pause() {
-
+        // Invoked when your application is paused.
     }
 
     @Override
     public void resume() {
-
+        // Invoked when your application is resumed after pause.
     }
 
     @Override
     public void hide() {
-
+        // This method is called when another screen replaces this one.
     }
 
     @Override
     public void dispose() {
-
+        // Destroy screen's assets here.
     }
 }
