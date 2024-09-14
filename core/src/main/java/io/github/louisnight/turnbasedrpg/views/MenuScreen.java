@@ -2,8 +2,10 @@ package io.github.louisnight.turnbasedrpg.views;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -29,11 +31,11 @@ public class MenuScreen implements Screen {
 
     private final Stage stage = new Stage(new ScreenViewport());
 
-    private CharSequence preferences;
-    private CharSequence newGame;
-    private CharSequence exit;
+    private TextButton newGame;
+    private TextButton preferences;
+    private TextButton exit;
 
-
+    private int selectedIndex = 0;
 
     @Override
     public void show() {
@@ -45,9 +47,9 @@ public class MenuScreen implements Screen {
         // adds buttons to Main Menu
         Skin skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
-        TextButton newGame = new TextButton("New Game", skin);
-        TextButton preferences = new TextButton("Preferences", skin);
-        TextButton exit = new TextButton("Exit", skin);
+        newGame = new TextButton("New Game", skin);
+        preferences = new TextButton("Preferences", skin);
+        exit = new TextButton("Exit", skin);
 
         // input from the buttons
         newGame.addListener(new ClickListener() {
@@ -78,7 +80,67 @@ public class MenuScreen implements Screen {
         table.row();
         table.add(exit).fillX().uniformX();
 
+        Gdx.input.setInputProcessor(stage);
+        stage.addListener(new InputListener() {
+            @Override
+            public boolean keyDown(InputEvent event, int keyCode) {
+                switch (keyCode) {
+                    case Input.Keys.UP:
+                        navigateUp();
+                        return true;
+                    case Input.Keys.DOWN:
+                        navigateDown();
+                        return true;
+                    case Input.Keys.ENTER:
+                        activateButton();
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        });
+    }
 
+    private void navigateUp() {
+        selectedIndex = (selectedIndex - 1 + 3) % 3;
+        updateSelection();
+    }
+
+    private void navigateDown() {
+        selectedIndex = (selectedIndex + 1) % 3;
+        updateSelection();
+    }
+
+    private void activateButton() {
+        switch (selectedIndex) {
+            case 0:
+                newGame.getListeners().forEach(listener -> {
+                    if (listener instanceof ClickListener) {
+                        ((ClickListener) listener).clicked(null, 0, 0);
+                    }
+                });
+                break;
+            case 1:
+                preferences.getListeners().forEach(listener -> {
+                    if (listener instanceof ClickListener) {
+                        ((ClickListener) listener).clicked(null, 0, 0);
+                    }
+                });
+                break;
+            case 2:
+                exit.getListeners().forEach(listener -> {
+                    if (listener instanceof ClickListener) {
+                        ((ClickListener) listener).clicked(null, 0, 0);
+                    }
+                });
+                break;
+        }
+    }
+
+    private void updateSelection() {
+        newGame.setColor(selectedIndex == 0 ? 1 : 0.5f, selectedIndex == 0 ? 1 : 0.5f, selectedIndex == 0 ? 1 : 0.5f, 1);
+        preferences.setColor(selectedIndex == 1 ? 1 : 0.5f, selectedIndex == 1 ? 1 : 0.5f, selectedIndex == 1 ? 1 : 0.5f, 1);
+        exit.setColor(selectedIndex == 2 ? 1 : 0.5f, selectedIndex == 2 ? 1 : 0.5f, selectedIndex == 2 ? 1 : 0.5f, 1);
     }
 
     @Override
