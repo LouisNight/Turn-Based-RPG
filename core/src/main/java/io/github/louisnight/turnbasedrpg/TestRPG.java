@@ -17,10 +17,11 @@ import io.github.louisnight.turnbasedrpg.views.*;
         public class TestRPG extends Game {
 
     private LoadingScreen loadingScreen;
-    private PreferencesScreen preferencesScreen;
-    private MainScreen mainScreen;
+    private OptionsScreen optionsScreen;
+    private GameScreen mainScreen;
     private EndScreen endScreen;
     private MenuScreen menuScreen;
+    private AppPreferences preferences;
 
     public final static int MENU = 0;
     public final static int PREFERENCES = 1;
@@ -29,6 +30,7 @@ import io.github.louisnight.turnbasedrpg.views.*;
 
     @Override
     public void create() {
+        preferences = new AppPreferences();
         loadingScreen = new LoadingScreen(this);
         setScreen(loadingScreen);
 
@@ -45,6 +47,10 @@ import io.github.louisnight.turnbasedrpg.views.*;
         // rainMusic.play();
     }
 
+    public AppPreferences getPreferences() {
+        return preferences;
+    }
+
     public void changeScreen(int screen) {
         switch (screen) {
             case MENU:
@@ -52,11 +58,11 @@ import io.github.louisnight.turnbasedrpg.views.*;
                 this.setScreen(menuScreen);
                 break;
             case PREFERENCES:
-                if (preferencesScreen == null) preferencesScreen = new PreferencesScreen(this);
-                this.setScreen(preferencesScreen);
+                if (optionsScreen == null) optionsScreen = new OptionsScreen(this);
+                this.setScreen(optionsScreen);
                 break;
             case APPLICATION:
-                if (mainScreen == null) mainScreen = new MainScreen(this);
+                if (mainScreen == null) mainScreen = new GameScreen(this);
                 this.setScreen(mainScreen);
                 break;
             case ENDGAME:
@@ -65,5 +71,5 @@ import io.github.louisnight.turnbasedrpg.views.*;
                 break;
         }
     }
-
 }
+
