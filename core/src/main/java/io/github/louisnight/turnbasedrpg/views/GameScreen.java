@@ -40,7 +40,7 @@ public class GameScreen implements Screen {
         camera.setToOrtho(false, 800, 600);
 
         // Load a tiled map
-        map = new TmxMapLoader().load("maps/game_map.tmx");
+        map = new TmxMapLoader().load("Maps/Test_map.tmx");
         mapRenderer = new OrthogonalTiledMapRenderer(map);
 
         // Set up the game world (optional for physics)
@@ -49,17 +49,29 @@ public class GameScreen implements Screen {
         // Stage for UI or entities
         stage = new Stage(new ScreenViewport(camera));
 
-        player = new Player(100, 100);
+        player = new Player(camera.position.x, camera.position.y);
 
         batch = new SpriteBatch();
 
         Gdx.input.setInputProcessor(stage);
     }
 
+    private void centerCameraOnMap() {
+        // Get map properties
+        float mapWidth = map.getProperties().get("width", Integer.class) * map.getProperties().get("tilewidth", Integer.class);
+        float mapHeight = map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class);
+
+        // Center the camera on the middle of the map
+        camera.position.set(mapWidth / 2f, mapHeight / 2f, 0);
+        camera.update();
+    }
+
     @Override
     public void show() {
         // Prepare your screen here.
         Gdx.input.setInputProcessor(stage);
+
+        centerCameraOnMap();
     }
 
     @Override
@@ -69,13 +81,16 @@ public class GameScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(Gdx.gl.GL_COLOR_BUFFER_BIT);
 
-        // update camera
-        camera.update();
-        mapRenderer.setView(camera);
-        mapRenderer.render();
-
         // Handle player input
         handleInput(delta);
+
+        // camera following player
+        camera.position.set(player.getPosition().x, player.getPosition().y, 0);
+        camera.update();
+
+        // rendering map
+        mapRenderer.setView(camera);
+        mapRenderer.render();
 
         // Render the player
         batch.setProjectionMatrix(camera.combined);
