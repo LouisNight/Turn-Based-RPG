@@ -17,13 +17,13 @@ public class Player {
     private boolean isMoving;
 
     public Player(float x, float y) {
-        texture = new Texture("Player_walking_sprite_sheet.png");
+        texture = new Texture("../assets/Player/Player_walking_sprite_sheet.png");
 
-        TextureRegion[][] tmpFrames = TextureRegion.split(texture, 32, 32);
+        TextureRegion[][] tmpFrames = TextureRegion.split(texture, 100, 100);
 
         walkAnimation = new Animation<TextureRegion>(0.1f, tmpFrames[0]);
         position = new Vector2(x, y);
-        speed = 200f;
+        speed = 100f;
         stateTime = 0f;
 
     }
@@ -48,12 +48,14 @@ public class Player {
             stateTime = 0f;
         }
     }
+
     public void render(SpriteBatch batch) {
         // Get the current frame of the animation based on stateTime
         TextureRegion currentFrame = isMoving ? walkAnimation.getKeyFrame(stateTime, true) : walkAnimation.getKeyFrame(0);
 
         batch.draw(currentFrame, position.x, position.y);
     }
+
     public Vector2 getPosition() {
         return position;
     }
