@@ -40,7 +40,7 @@ public class GameScreen implements Screen {
         camera.setToOrtho(false, 800, 600);
 
         // Load a tiled map
-        map = new TmxMapLoader().load("Maps/Test_map.tmx");
+        map = new TmxMapLoader().load("Maps/Dungeon1Map.tmx");
         mapRenderer = new OrthogonalTiledMapRenderer(map);
 
         // Set up the game world (optional for physics)
