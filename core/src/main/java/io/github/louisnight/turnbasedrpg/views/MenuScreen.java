@@ -1,17 +1,16 @@
 package io.github.louisnight.turnbasedrpg.views;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.louisnight.turnbasedrpg.TestRPG;
-import com.badlogic.gdx.Screen;
 
 public class MenuScreen implements Screen {
     // storing orchestrator
@@ -22,54 +21,29 @@ public class MenuScreen implements Screen {
         parent = testRPG;
 
         // setup user input using stage
-        Gdx.input.setInputProcessor(stage);
+
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
     }
 
     private final Stage stage = new Stage(new ScreenViewport());
 
-    private CharSequence preferences;
-    private CharSequence newGame;
-    private CharSequence exit;
-
-
 
     @Override
     public void show() {
+        Gdx.input.setInputProcessor(stage);
+
         Table table = new Table();
         table.setFillParent(true);
-        table.setDebug(true);
+        // table.setDebug(true);
         stage.addActor(table);
 
         // adds buttons to Main Menu
         Skin skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
         TextButton newGame = new TextButton("New Game", skin);
-        TextButton preferences = new TextButton("Preferences", skin);
+        TextButton preferences = new TextButton("Options", skin);
         TextButton exit = new TextButton("Exit", skin);
-
-        // input from the buttons
-        newGame.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                ((Game) Gdx.app.getApplicationListener()).setScreen(new MainScreen(parent));
-            }
-        });
-
-        preferences.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                ((Game) Gdx.app.getApplicationListener()).setScreen(new PreferencesScreen(parent));
-            }
-        });
-
-        exit.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.exit();
-            }
-        });
 
         // adds table to stage for Main Menu
         table.add(newGame).fillX().uniformX();
@@ -78,7 +52,26 @@ public class MenuScreen implements Screen {
         table.row();
         table.add(exit).fillX().uniformX();
 
+        exit.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Gdx.app.exit();
+            }
+        });
 
+        newGame.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                parent.changeScreen(TestRPG.APPLICATION);
+            }
+        });
+
+        preferences.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                parent.changeScreen(TestRPG.PREFERENCES);
+            }
+        });
     }
 
     @Override
@@ -90,8 +83,6 @@ public class MenuScreen implements Screen {
         // tell our stage to do actions and draw itself
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
-
-
     }
 
     @Override
@@ -117,6 +108,6 @@ public class MenuScreen implements Screen {
 
     @Override
     public void dispose() {
-
+stage.dispose();
     }
 }
