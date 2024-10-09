@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="80" height="80" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="1">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="80" height="80" tilewidth="16" tileheight="16" infinite="0" nextlayerid="8" nextobjectid="19">
  <tileset firstgid="1" source="../Tilesets/Dungeon_Tileset.tsx"/>
  <layer id="1" name="Tile Layer 1" width="80" height="80">
   <data encoding="csv">
@@ -337,4 +337,14 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
+ <objectgroup id="7" name="Collision">
+  <object id="6" x="434" y="765.333" width="206" height="18"/>
+  <object id="12" x="625.333" y="783.333" width="60.6667" height="17.3333"/>
+  <object id="13" x="672.667" y="781.333" width="15.3333" height="97.3333"/>
+  <object id="14" x="464" y="862.667" width="224.667" height="16.6667"/>
+  <object id="15" x="511.333" y="783.333" width="32" height="16.6667"/>
+  <object id="16" x="512.667" y="814.667" width="32.6667" height="16"/>
+  <object id="17" x="625.333" y="816" width="30" height="15.3333"/>
+  <object id="18" x="443.333" y="832.667" width="211.333" height="14.6667"/>
+ </objectgroup>
 </map>
