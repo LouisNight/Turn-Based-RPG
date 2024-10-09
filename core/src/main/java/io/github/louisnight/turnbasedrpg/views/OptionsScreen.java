@@ -1,6 +1,7 @@
 package io.github.louisnight.turnbasedrpg.views;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -35,7 +36,7 @@ public class OptionsScreen implements Screen {
 
     @Override
     public void show() {
-stage.clear();
+        stage.clear();
         Skin skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
         //volume
@@ -60,8 +61,16 @@ stage.clear();
                 return false;
             }
         });
+        //fullscreen
+        final TextButton fullscreenButton = new TextButton("Toggle Fullscreen", skin);
+        fullscreenButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                toggleFullscreen();
+            }
+        });
 
-// return to main screen button
+        // return to main screen button
         final TextButton backButton = new TextButton("Back", skin); // the extra argument here "small" is used to set the button to the smaller version instead of the big default version
         backButton.addListener(new ChangeListener() {
             @Override
@@ -101,9 +110,21 @@ stage.clear();
         table.add(soundOnOffLabel).left();
         table.add(soundEffectsCheckbox);
         table.row().pad(10, 0, 0, 10);
+        table.add(fullscreenButton).colspan(2);
+        table.row().pad(10, 0, 0, 10);
         table.add(backButton).colspan(2);
 
+        stage.addActor(table);
         Gdx.input.setInputProcessor(stage);
+    }
+
+    private void toggleFullscreen() {
+        if (Gdx.graphics.isFullscreen()) {
+            Gdx.graphics.setWindowedMode(1000, 800);
+        } else {
+            Graphics.DisplayMode displayMode = Gdx.graphics.getDisplayMode();
+            Gdx.graphics.setFullscreenMode(displayMode);
+        }
     }
 
     @Override
@@ -142,5 +163,6 @@ stage.clear();
 
     @Override
     public void dispose() {
+        stage.dispose();
     }
 }
