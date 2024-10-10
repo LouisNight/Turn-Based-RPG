@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 public abstract class Enemy {
@@ -12,22 +13,30 @@ public abstract class Enemy {
     protected Animation<TextureRegion> walkAnimation;
     protected float speed;
     protected float stateTime;
+    protected Rectangle boundingBox;
 
     public Enemy(float x, float y) {
-        this.position = new Vector2(x, y);
-        this.stateTime = 0f;
+        position = new Vector2(x, y);
+        boundingBox = new Rectangle(x, y, 50, 50);
+        speed = 50f;
     }
 
-    public abstract void update(float delta);  // Define in subclasses
-    public abstract void render(SpriteBatch batch);  // Define in subclasses
+    public abstract void update(float delta);
 
-    public Vector2 getPosition() {
-        return position;
+    public void render(SpriteBatch batch) {
+        batch.draw(texture, position.x, position.y);
     }
+
+    public Rectangle getBoundingBox() {
+        return boundingBox;
+    }
+
+    protected void updateBoundingBox() {
+        boundingBox.setPosition(position.x, position.y);
+    }
+
 
     public void dispose() {
-        if (texture != null) {
             texture.dispose();
-        }
     }
 }

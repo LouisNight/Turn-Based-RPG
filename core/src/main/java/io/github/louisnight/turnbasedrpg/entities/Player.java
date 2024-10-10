@@ -22,8 +22,8 @@ public class Player {
 
     private static final int FRAME_WIDTH = 100;
     private static final int FRAME_HEIGHT = 100;
-    private static final int CHARACTER_WIDTH = 20;
-    private static final int CHARACTER_HEIGHT = 20;
+    private static final int CHARACTER_WIDTH = 15;
+    private static final int CHARACTER_HEIGHT = 15;
 
     private int health;
 

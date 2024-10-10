@@ -22,6 +22,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.louisnight.turnbasedrpg.TestRPG;
 import io.github.louisnight.turnbasedrpg.entities.Enemy;
@@ -31,14 +32,13 @@ import io.github.louisnight.turnbasedrpg.entities.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * First screen of the application. Displayed after the application is created.
- */
+
 public class GameScreen implements Screen {
 
     private TestRPG parent; // storing orchestrator
     private Stage stage;
     private OrthographicCamera camera;
+    private FitViewport viewport;
     private TiledMap map;
     private OrthogonalTiledMapRenderer mapRenderer;
     private World world;
@@ -89,7 +89,15 @@ public class GameScreen implements Screen {
 
         // Initialize camera and viewport
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 600);
+
+        viewport = new FitViewport(400, 300, camera);
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
+        float aspectRatio = screenWidth / screenHeight;
+
+        uiTable.setSize(screenWidth * 0.8f, screenHeight * 0.2f);
+
+        //camera.setToOrtho(false, 400, 400 / aspectRatio);
 
         // Load a tiled map
         map = new TmxMapLoader().load("Maps/Dungeon1Map.tmx");
@@ -101,7 +109,7 @@ public class GameScreen implements Screen {
         // Stage for UI or entities
         stage = new Stage(new ScreenViewport(camera));
 
-        player = new Player(camera.position.x, camera.position.y);
+        player = new Player(400, 300);
 
         batch = new SpriteBatch();
 
@@ -124,7 +132,7 @@ public class GameScreen implements Screen {
 
     private void spawnEnemies() {
         enemies.add(EnemyFactory.createEnemy("orc", 100, 100));
-        enemies.add(EnemyFactory.createEnemy("skeleton", 200, 200));
+        enemies.add(EnemyFactory.createEnemy("skeleton", 200, 180));
     }
     private void centerCameraOnMap() {
         // Get map properties
@@ -147,31 +155,36 @@ public class GameScreen implements Screen {
     @Override
     public void render(float delta) {
 
-        // Draw your screen here. "delta" is the time since last render in seconds.
-        // Clear Screen
+        // "delta" is the time since last render in seconds.
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(Gdx.gl.GL_COLOR_BUFFER_BIT);
 
         // Handle player input
         handleInput(delta);
 
+        Vector2 playerPosition = player.getPosition();
+
         // camera following player
-        camera.position.set(player.getPosition().x, player.getPosition().y, 0);
+        camera.position.set(playerPosition.x + camera.viewportWidth / 6, playerPosition.y + camera.viewportHeight / 6, 0);
         camera.update();
 
+        batch.setProjectionMatrix(camera.combined);
+
+        batch.begin();
         // rendering map
         mapRenderer.setView(camera);
         mapRenderer.render();
-
-        // Render the player
-        batch.setProjectionMatrix(camera.combined);
-        batch.begin();
 
         player.render(batch);
 
         for (Enemy enemy : enemies) {
             enemy.update(delta);
             enemy.render(batch);
+
+            Rectangle enemyHitbox = enemy.getBoundingBox();
+            if (player.getBoundingBox().overlaps(enemyHitbox)) {
+                System.out.println("Collision detected with enemy!");
+            }
         }
         // DEBUGGING COLLISION (PLAYER && RECTANGLES)
         ShapeRenderer shapeRenderer = new ShapeRenderer();
@@ -213,9 +226,12 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-       camera.viewportWidth = width;
-       camera.viewportHeight = height;
-       camera.update();
+//        float aspectRatio = (float) width / (float) height;
+//
+//       camera.viewportWidth = 400;
+//       camera.viewportHeight = 400 / aspectRatio;
+//       camera.update();
+        viewport.update(width, height);
     }
 
 
