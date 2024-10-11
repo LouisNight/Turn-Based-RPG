@@ -14,12 +14,17 @@ public class Orc extends Enemy {
 
     public Orc(float x, float y) {
         super(x, y);
-        texture = new Texture("../assets/Enemies/Orc-Walk.png");
+        texture = new Texture("../assets/Enemies/orc1_walk_full.png");
 
         boundingBox.setSize(25, 25);
 
-        TextureRegion[][] tmpFrames = TextureRegion.split(texture, 100, 100);
-        walkAnimation = new Animation<>(0.1f, tmpFrames[0]);
+        TextureRegion[][] tmpFrames = TextureRegion.split(texture, 64, 64);
+        walkDownAnimation = new Animation<TextureRegion>(0.1f, tmpFrames[0]);
+        walkUpAnimation = new Animation<TextureRegion>(0.1f, tmpFrames[1]);
+        walkLeftAnimation = new Animation<TextureRegion>(0.1f, tmpFrames[2]);
+        walkRightAnimation = new Animation<TextureRegion>(0.1f, tmpFrames[3]);
+
+        currentAnimation = walkDownAnimation;
         position = new Vector2(x, y);
         speed = 50f;
         stateTime = 0f;
@@ -32,6 +37,7 @@ public class Orc extends Enemy {
     @Override
     public void update(float delta) {
         changeDirectionTimer += delta;
+        stateTime += delta;
 
         if (changeDirectionTimer >= directionDuration) {
             // Pick a new random direction and duration
@@ -45,12 +51,22 @@ public class Orc extends Enemy {
         position.y += direction.y * speed * delta;
 
         updateBoundingBox();
+
+        if (direction.y > 0) {
+            currentAnimation = walkUpAnimation;
+        } else if (direction.y < 0) {
+            currentAnimation = walkDownAnimation;
+        } else if (direction.x > 0) {
+            currentAnimation = walkRightAnimation;
+        } else if (direction.x < 0) {
+            currentAnimation = walkLeftAnimation;
+        }
     }
 
     @Override
     public void render(SpriteBatch batch) {
 
-        TextureRegion currentFrame = walkAnimation.getKeyFrame(stateTime, true);
+        TextureRegion currentFrame = currentAnimation.getKeyFrame(stateTime, true);
         batch.draw(currentFrame, position.x, position.y);
     }
 }

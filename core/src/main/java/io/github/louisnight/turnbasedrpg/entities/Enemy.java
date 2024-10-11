@@ -10,10 +10,15 @@ import com.badlogic.gdx.math.Vector2;
 public abstract class Enemy {
     protected Vector2 position;
     protected Texture texture;
-    protected Animation<TextureRegion> walkAnimation;
     protected float speed;
     protected float stateTime;
     protected Rectangle boundingBox;
+    protected Animation<TextureRegion> walkDownAnimation;
+    protected Animation<TextureRegion> walkUpAnimation;
+    protected Animation<TextureRegion> walkLeftAnimation;
+    protected Animation<TextureRegion> walkRightAnimation;
+    protected Animation<TextureRegion> currentAnimation;
+    protected Animation<TextureRegion> walkAnimation;
 
     public Enemy(float x, float y) {
         position = new Vector2(x, y);
@@ -37,6 +42,8 @@ public abstract class Enemy {
 
 
     public void dispose() {
-            texture.dispose();
+            if (texture != null) {
+                texture.dispose();
+            }
     }
 }
