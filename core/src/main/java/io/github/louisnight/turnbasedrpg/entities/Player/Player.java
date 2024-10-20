@@ -30,8 +30,8 @@ public abstract class Player {
 
     protected static final int FRAME_WIDTH = 48;
     protected static final int FRAME_HEIGHT = 48;
-    protected static final int CHARACTER_WIDTH = 20;
-    protected static final int CHARACTER_HEIGHT = 30;
+    protected static final int CHARACTER_WIDTH = 16;
+    protected static final int CHARACTER_HEIGHT = 16;
 
     protected float health;
     protected float maxHealth;
