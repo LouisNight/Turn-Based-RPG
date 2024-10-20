@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
@@ -65,6 +66,8 @@ public class GameScreen implements Screen {
     public GameScreen(TestRPG testRPG) {
         this.parent = testRPG;
 
+        collisionRectangles = new ArrayList<>();
+
         uiStage = new Stage(new ScreenViewport());
         inventoryStage = new Stage(new ScreenViewport());
 
@@ -81,7 +84,7 @@ public class GameScreen implements Screen {
         uiStage = new Stage(new ScreenViewport());
         skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
-        player = new ImplementPlayer(100,100);
+        player = new ImplementPlayer(1990,100);
         player.setMaxHealth(100);
         player.setHealth(100);
 
@@ -126,23 +129,38 @@ public class GameScreen implements Screen {
         world = new World(new Vector2(0, 0), true);
 
         stage = new Stage(new ScreenViewport(camera));
-        loadCollisionRectangles();
+        loadCollisionLayer();
 
         Gdx.input.setInputProcessor(stage);
     }
 
 
-    private void loadCollisionRectangles() {
+    private void loadCollisionLayer() {
+        // Access the collision layer by name
+        TiledMapTileLayer collisionLayer = (TiledMapTileLayer) map.getLayers().get("Collision");
 
-        collisionRectangles = new ArrayList<>();
+        if (collisionLayer == null) {
+            System.out.println("No collision layer found");
+            return;
+        }
 
-        for (MapObject object : map.getLayers().get("Collision").getObjects()) {
-            if (object instanceof RectangleMapObject) {
-                Rectangle rect = ((RectangleMapObject) object).getRectangle();
-                collisionRectangles.add(rect);
-                System.out.println("Loaded rectangle at: " + rect.x + ", " + rect.y);
+        // Loop through the tiles in the collision layer
+        for (int x = 0; x < collisionLayer.getWidth(); x++) {
+            for (int y = 0; y < collisionLayer.getHeight(); y++) {
+                TiledMapTileLayer.Cell cell = collisionLayer.getCell(x, y);
+                if (cell != null) {
+                    // Get the tile's rectangular bounds (assuming tile width and height are fixed for simplicity)
+                    float tileWidth = collisionLayer.getTileWidth();
+                    float tileHeight = collisionLayer.getTileHeight();
+
+                    Rectangle rect = new Rectangle(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
+                    collisionRectangles.add(rect);
+
+                    System.out.println("Loaded collision tile at: " + rect.x + ", " + rect.y);
+                }
             }
         }
+
     }
 
     private void spawnEnemies() {
