@@ -3,9 +3,11 @@ package io.github.louisnight.turnbasedrpg.views;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -233,17 +235,17 @@ public class GameScreen implements Screen {
         }
 
         // DEBUGGING COLLISION (PLAYER && RECTANGLES)
-//        ShapeRenderer shapeRenderer = new ShapeRenderer();
-//        shapeRenderer.setProjectionMatrix(camera.combined);
-//        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-//        shapeRenderer.setColor(Color.RED);
-//
-//        Rectangle playerBoundingBox = player.getBoundingBox();
-//        shapeRenderer.rect(playerBoundingBox.x, playerBoundingBox.y, playerBoundingBox.width, playerBoundingBox.height);
-//        for (Rectangle rect : collisionRectangles) {
-//            shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
-//        }
-//        shapeRenderer.end();
+       ShapeRenderer shapeRenderer = new ShapeRenderer();
+       shapeRenderer.setProjectionMatrix(camera.combined);
+      shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+       shapeRenderer.setColor(Color.RED);
+
+       Rectangle playerBoundingBox = player.getBoundingBox();
+       shapeRenderer.rect(playerBoundingBox.x, playerBoundingBox.y, playerBoundingBox.width, playerBoundingBox.height);
+       for (Rectangle rect : collisionRectangles) {
+           shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+       }
+        shapeRenderer.end();
 
         // update world (for physics, etc.)
 
