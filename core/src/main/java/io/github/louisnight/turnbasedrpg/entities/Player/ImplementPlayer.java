@@ -46,7 +46,7 @@ public class ImplementPlayer extends Player {
 
         // Update the bounding box position after the movement
         float offsetX = (FRAME_WIDTH - CHARACTER_WIDTH) / 2;
-        float offsetY = (FRAME_HEIGHT - CHARACTER_HEIGHT) / 2;
+        float offsetY = (FRAME_HEIGHT - CHARACTER_HEIGHT) / 2 - 7;
         boundingBox.setPosition(position.x + offsetX, position.y + offsetY);
 
         // Update animation state time based on movement
@@ -67,6 +67,7 @@ public class ImplementPlayer extends Player {
 
     private boolean isColliding(Rectangle futurePosition, ArrayList<Rectangle> collisionRectangles) {
         for (Rectangle rect : collisionRectangles) {
+            futurePosition = boundingBox;
             if (futurePosition.overlaps(rect)) {
                 System.out.println("Collision detected at: " + rect);
                 return true;

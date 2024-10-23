@@ -4,12 +4,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
@@ -62,6 +65,8 @@ public class GameScreen implements Screen {
     public GameScreen(TestRPG testRPG) {
         this.parent = testRPG;
 
+        collisionRectangles = new ArrayList<>();
+
         uiStage = new Stage(new ScreenViewport());
         inventoryStage = new Stage(new ScreenViewport());
 
@@ -77,7 +82,9 @@ public class GameScreen implements Screen {
         uiStage = new Stage(new ScreenViewport());
         skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
+
         player = new ImplementPlayer(100, 100);
+
         player.setMaxHealth(100);
         player.setHealth(100);
 
@@ -117,6 +124,7 @@ public class GameScreen implements Screen {
         world = new World(new Vector2(0, 0), true);
 
         stage = new Stage(new ScreenViewport(camera));
+      
         loadCollisionRectangles();
     }
 
@@ -126,8 +134,39 @@ public class GameScreen implements Screen {
             if (object instanceof RectangleMapObject) {
                 Rectangle rect = ((RectangleMapObject) object).getRectangle();
                 collisionRectangles.add(rect);
+
+        loadCollisionLayer();
+
+        Gdx.input.setInputProcessor(stage);
+    }
+
+
+    private void loadCollisionLayer() {
+        // Access the collision layer by name
+        TiledMapTileLayer collisionLayer = (TiledMapTileLayer) map.getLayers().get("Collision");
+
+        if (collisionLayer == null) {
+            System.out.println("No collision layer found");
+            return;
+        }
+
+        // Loop through the tiles in the collision layer
+        for (int x = 0; x < collisionLayer.getWidth(); x++) {
+            for (int y = 0; y < collisionLayer.getHeight(); y++) {
+                TiledMapTileLayer.Cell cell = collisionLayer.getCell(x, y);
+                if (cell != null) {
+                    // Get the tile's rectangular bounds (assuming tile width and height are fixed for simplicity)
+                    float tileWidth = collisionLayer.getTileWidth();
+                    float tileHeight = collisionLayer.getTileHeight();
+
+                    Rectangle rect = new Rectangle(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
+                    collisionRectangles.add(rect);
+
+                    System.out.println("Loaded collision tile at: " + rect.x + ", " + rect.y);
+                }
             }
         }
+
     }
 
     private void spawnEnemies() {
@@ -183,7 +222,23 @@ public class GameScreen implements Screen {
             inventory.render(delta, batch);
         }
 
-        world.step(1 / 60f, 6, 2);
+
+        // DEBUGGING COLLISION (PLAYER && RECTANGLES)
+       ShapeRenderer shapeRenderer = new ShapeRenderer();
+       shapeRenderer.setProjectionMatrix(camera.combined);
+      shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+       shapeRenderer.setColor(Color.RED);
+
+       Rectangle playerBoundingBox = player.getBoundingBox();
+       shapeRenderer.rect(playerBoundingBox.x, playerBoundingBox.y, playerBoundingBox.width, playerBoundingBox.height);
+       for (Rectangle rect : collisionRectangles) {
+           shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+       }
+        shapeRenderer.end();
+
+
+        world.step(1/60f, 6, 2);
+
     }
 
 
