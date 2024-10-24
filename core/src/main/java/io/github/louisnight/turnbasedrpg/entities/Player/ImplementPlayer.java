@@ -37,7 +37,19 @@ public class ImplementPlayer extends Player {
         }
 
         // Predict the player's future position based on the intended movement
-        Rectangle futurePosition = new Rectangle(position.x + movement.x, position.y + movement.y, boundingBox.width, boundingBox.height);
+        // Hitbox offset and resizing
+        float hitboxOffsetX = 16.3f;  // Adjust these values for more accurate hitbox
+        float hitboxOffsetY = 9.8f;
+        float newWidth = boundingBox.width;  // Adjust these values for hitbox size
+        float newHeight = boundingBox.height;
+
+        // Predict the player's future position based on the intended movement
+        Rectangle futurePosition = new Rectangle(
+            position.x + movement.x + hitboxOffsetX,
+            position.y + movement.y + hitboxOffsetY,
+            newWidth,
+            newHeight
+        );
 
         // Check for collisions before applying movement
         if (!isColliding(futurePosition, collisionRectangles)) {
@@ -67,7 +79,6 @@ public class ImplementPlayer extends Player {
 
     private boolean isColliding(Rectangle futurePosition, ArrayList<Rectangle> collisionRectangles) {
         for (Rectangle rect : collisionRectangles) {
-            futurePosition = boundingBox;
             if (futurePosition.overlaps(rect)) {
                 System.out.println("Collision detected at: " + rect);
                 return true;
