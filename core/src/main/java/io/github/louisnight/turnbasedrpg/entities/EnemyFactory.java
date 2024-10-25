@@ -6,8 +6,8 @@ public class EnemyFactory {
         switch (type.toLowerCase()) {
             case "orc":
                 return new Orc(x, y);
-            case "skeleton":
-                return new Skeleton(x,y);
+            case "heavyorc":
+                return new HeavyOrc(x,y);
             default:
                 throw new IllegalArgumentException("Unknown enemy type: " + type);
         }

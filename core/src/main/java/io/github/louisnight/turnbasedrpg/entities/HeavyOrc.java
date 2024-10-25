@@ -8,16 +8,16 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
-public class Orc extends Enemy {
+public class HeavyOrc extends Enemy {
     private Vector2 direction;
     private float changeDirectionTimer;
     private float directionDuration;
     private EnemyState state;
 
-    public Orc(float x, float y) {
+    public HeavyOrc(float x, float y) {
         super(x, y);
 
-        texture = new Texture("../assets/Enemies/orc1_walk_full.png");
+        texture = new Texture("../assets/Enemies/orc3_walk_full.png");
         loadCombatAssets();
         boundingBox.setSize(25, 25);
 
@@ -37,13 +37,14 @@ public class Orc extends Enemy {
         directionDuration = MathUtils.random(2f, 5f);
 
 
+
     }
 
     @Override
     public void loadCombatAssets() {
 
         // ATTACK ANIMATION
-        Texture attackSpriteSheet = new Texture("../assets/Enemies/orc1_attack_full.png");
+        Texture attackSpriteSheet = new Texture("../assets/Enemies/orc3_attack_full.png");
         int attackFrameCols = 8;
         int attackFrameRows = 4;
         TextureRegion[][] attackTmp = TextureRegion.split(attackSpriteSheet, attackSpriteSheet.getWidth() / attackFrameCols,
@@ -56,7 +57,7 @@ public class Orc extends Enemy {
         attackAnimation = new Animation<>(0.1f, attackFrames, Animation.PlayMode.LOOP);
 
         // IDLE ANIMATION
-        Texture idleSpriteSheet = new Texture("../assets/Enemies/orc1_idle_full.png");
+        Texture idleSpriteSheet = new Texture("../assets/Enemies/orc3_idle_full.png");
         int idleFrameCols = 4;
         int idleFrameRows = 4;
         TextureRegion[][] idleTmp = TextureRegion.split(idleSpriteSheet, idleSpriteSheet.getWidth() / idleFrameCols,
@@ -68,14 +69,8 @@ public class Orc extends Enemy {
 
         idleAnimation = new Animation<>(0.1f, idleFrames, Animation.PlayMode.LOOP);
 
-        if (idleAnimation == null) {
-            System.out.println("Idle animation for Orc is not initialized!");
-        } else {
-            System.out.println("Idle animation for Orc is successfully initialized.");
-        }
-
         // HURT ANIMATION
-        Texture hurtSpriteSheet = new Texture("../assets/Enemies/orc1_hurt_full.png");
+        Texture hurtSpriteSheet = new Texture("../assets/Enemies/orc3_hurt_full.png");
         int hurtFrameCols = 6;
         int hurtFrameRows = 4;
         TextureRegion[][] hurtTmp = TextureRegion.split(hurtSpriteSheet, hurtSpriteSheet.getWidth() / hurtFrameCols,
@@ -87,8 +82,9 @@ public class Orc extends Enemy {
 
         hurtAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.LOOP);
 
+
         // DEATH ANIMATION
-        Texture deathSpriteSheet = new Texture("../assets/Enemies/orc1_death_full.png");
+        Texture deathSpriteSheet = new Texture("../assets/Enemies/orc3_death_full.png");
         int deathFrameCols = 8;
         int deathFrameRows = 4;
         TextureRegion[][] deathTmp = TextureRegion.split(deathSpriteSheet, deathSpriteSheet.getWidth() / deathFrameCols,
@@ -99,7 +95,14 @@ public class Orc extends Enemy {
         Array<TextureRegion> deathFrames = new Array<>(thirdRowFramesDeath);
 
         deathAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.LOOP);
+
+        if (idleAnimation == null) {
+            System.out.println("Idle animation for Orc is not initialized!");
+        } else {
+            System.out.println("Idle animation for Orc is successfully initialized.");
+        }
     }
+
 
     @Override
     public void update(float delta) {
@@ -117,6 +120,7 @@ public class Orc extends Enemy {
             updateBoundingBox();  // Ensure the hitbox is updated with position
         }
     }
+
 
     @Override
     public void render(SpriteBatch batch) {
@@ -148,4 +152,4 @@ public class Orc extends Enemy {
             System.out.println("No animation available for current state: " + state);
         }
     }
-}
+    }

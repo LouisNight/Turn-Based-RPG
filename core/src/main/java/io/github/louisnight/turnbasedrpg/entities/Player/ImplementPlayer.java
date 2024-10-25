@@ -67,7 +67,6 @@ public class ImplementPlayer extends Player {
 
     private boolean isColliding(Rectangle futurePosition, ArrayList<Rectangle> collisionRectangles) {
         for (Rectangle rect : collisionRectangles) {
-            futurePosition = boundingBox;
             if (futurePosition.overlaps(rect)) {
                 System.out.println("Collision detected at: " + rect);
                 return true;

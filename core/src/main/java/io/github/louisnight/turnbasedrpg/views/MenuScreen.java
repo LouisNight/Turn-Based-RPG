@@ -13,45 +13,41 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.louisnight.turnbasedrpg.TestRPG;
 
 public class MenuScreen implements Screen {
-    // storing orchestrator
     private final TestRPG parent;
+    private final Stage stage;
 
-    // constructor with core/main argument
+    // Constructor with the main game argument
     public MenuScreen(TestRPG testRPG) {
         parent = testRPG;
-
-        // setup user input using stage
-
-        stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
-        stage.draw();
+        stage = new Stage(new ScreenViewport());  // Initialize stage here
     }
-
-    private final Stage stage = new Stage(new ScreenViewport());
-
 
     @Override
     public void show() {
+        // Set input processor to this stage (for buttons to work)
         Gdx.input.setInputProcessor(stage);
 
+        // Setup table layout for buttons
         Table table = new Table();
         table.setFillParent(true);
-        // table.setDebug(true);
         stage.addActor(table);
 
-        // adds buttons to Main Menu
+        // Load skin for buttons
         Skin skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
+        // Create buttons
         TextButton newGame = new TextButton("New Game", skin);
         TextButton preferences = new TextButton("Options", skin);
         TextButton exit = new TextButton("Exit", skin);
 
-        // adds table to stage for Main Menu
+        // Add buttons to table with padding
         table.add(newGame).fillX().uniformX();
         table.row().pad(10, 0, 10, 0);
         table.add(preferences).fillX().uniformX();
         table.row();
         table.add(exit).fillX().uniformX();
 
+        // Listener for "Exit" button
         exit.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -59,55 +55,52 @@ public class MenuScreen implements Screen {
             }
         });
 
+        // Listener for "New Game" button
         newGame.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                parent.changeScreen(TestRPG.APPLICATION);
+                parent.changeScreen(TestRPG.APPLICATION);  // Start the game
             }
         });
 
+        // Listener for "Preferences" button
         preferences.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                parent.changeScreen(TestRPG.PREFERENCES);
+                parent.changeScreen(TestRPG.PREFERENCES);  // Open options screen
             }
         });
     }
 
     @Override
-    public void render(float v) {
-        // clear the screen ready for next set of images to be drawn
+    public void render(float delta) {
+        // Clear the screen with a black color
         Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // tell our stage to do actions and draw itself
+        // Tell stage to perform actions and draw itself
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
     }
 
     @Override
-    public void resize(int i, int i1) {
-
-        stage.getViewport().update(i, i1, true);
+    public void resize(int width, int height) {
+        // Adjust stage viewport when the window is resized
+        stage.getViewport().update(width, height, true);
     }
 
     @Override
-    public void pause() {
-
-    }
+    public void pause() {}
 
     @Override
-    public void resume() {
-
-    }
+    public void resume() {}
 
     @Override
-    public void hide() {
-
-    }
+    public void hide() {}
 
     @Override
     public void dispose() {
-stage.dispose();
+        // Dispose of the stage to free resources
+        stage.dispose();
     }
 }

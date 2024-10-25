@@ -1,24 +1,14 @@
 package io.github.louisnight.turnbasedrpg;
 
 import com.badlogic.gdx.Game;
+import io.github.louisnight.turnbasedrpg.entities.Enemy;
 import io.github.louisnight.turnbasedrpg.views.*;
 
-
-    // private Texture knightImage;
-    //    private Texture bucketImage;
-//    private Sound dropSound;
-    // private Music townMusic;
-
-
-
-
-/** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
-
-        public class TestRPG extends Game {
+public class TestRPG extends Game {
 
     private LoadingScreen loadingScreen;
     private OptionsScreen optionsScreen;
-    private GameScreen mainScreen;
+    private GameScreen gameScreen;
     private EndScreen endScreen;
     private MenuScreen menuScreen;
     private AppPreferences preferences;
@@ -31,45 +21,51 @@ import io.github.louisnight.turnbasedrpg.views.*;
     @Override
     public void create() {
         preferences = new AppPreferences();
+
+        // Initialize screens (but don't display yet)
         loadingScreen = new LoadingScreen(this);
-        setScreen(loadingScreen);
+        menuScreen = new MenuScreen(this);  // Initialize MenuScreen
+        gameScreen = new GameScreen(this);
+        optionsScreen = new OptionsScreen(this);
+        endScreen = new EndScreen(this);
 
-        // load the images for the droplet and the bucket, 64x64 pixels each
-        //  dropImage = new Texture(Gdx.files.internal("droplet.png"));
-        // bucketImage = new Texture(Gdx.files.internal("bucket.png"));
+        // Set the initial screen (menu screen)
+        setScreen(menuScreen);  // Start at the menu screen
+    }
 
-        // load the drop sound effect and the rain background "music"
-        // dropSound = Gdx.audio.newSound(Gdx.files.internal("drop.wav"));
-        // rainMusic = Gdx.audio.newMusic(Gdx.files.internal("rain.mp3"));
+    // Return to overworld after winning combat
+    public void returnToOverworldWithWin(Enemy defeatedEnemy) {
+        gameScreen.returnToOverworldWithWin(defeatedEnemy);
+    }
 
-        // start the playback of the background music immediately
-        //  rainMusic.setLooping(true);
-        // rainMusic.play();
+    // Return to overworld after losing combat
+    public void returnToOverworldWithLoss() {
+        gameScreen.returnToOverworldWithLoss();
     }
 
     public AppPreferences getPreferences() {
         return preferences;
     }
 
+    // Change screen based on user action
     public void changeScreen(int screen) {
         switch (screen) {
             case MENU:
                 if (menuScreen == null) menuScreen = new MenuScreen(this);
-                this.setScreen(menuScreen);
+                setScreen(menuScreen);  // Go back to the main menu
                 break;
             case PREFERENCES:
                 if (optionsScreen == null) optionsScreen = new OptionsScreen(this);
-                this.setScreen(optionsScreen);
+                setScreen(optionsScreen);  // Go to the preferences/options screen
                 break;
             case APPLICATION:
-                if (mainScreen == null) mainScreen = new GameScreen(this);
-                this.setScreen(mainScreen);
+                if (gameScreen == null) gameScreen = new GameScreen(this);
+                setScreen(gameScreen);  // Start the game (go to game screen)
                 break;
             case ENDGAME:
                 if (endScreen == null) endScreen = new EndScreen(this);
-                this.setScreen(endScreen);
+                setScreen(endScreen);  // Show endgame screen
                 break;
         }
     }
 }
-
