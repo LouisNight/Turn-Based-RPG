@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 
 import java.util.ArrayList;
 
@@ -13,7 +14,6 @@ public abstract class Player {
 
     protected Vector2 position;
     protected float speed;
-    protected Animation<TextureRegion> walkAnimation;
     protected float stateTime;
     protected Texture walkDownTexture;
     protected Texture walkUpTexture;
@@ -24,9 +24,14 @@ public abstract class Player {
     protected Animation<TextureRegion> walkLeftAnimation;
     protected Animation<TextureRegion> walkRightAnimation;
     protected Animation<TextureRegion> currentAnimation;
+    private Animation<TextureRegion> attackAnimation;
+    private Animation<TextureRegion> idleAnimation;
+    private Animation<TextureRegion> hurtAnimation;
+    private Animation<TextureRegion> deathAnimation;
 
     protected boolean isMoving;
     protected Rectangle boundingBox;
+    protected PlayerState state;
 
     protected static final int FRAME_WIDTH = 48;
     protected static final int FRAME_HEIGHT = 48;
@@ -41,6 +46,8 @@ public abstract class Player {
 
     // Constructor
     public Player(float x, float y) {
+
+        state = PlayerState.IDLE;
 
         walkDownTexture = new Texture("../assets/Player/WarriorDownWalk.png");
         walkUpTexture = new Texture("../assets/Player/WarriorUpWalk.png");
@@ -72,6 +79,86 @@ public abstract class Player {
         defense = 5f;
     }
 
+    public void loadCombatAssets() {
+
+        // ATTACK ANIMATION
+        Texture attackSpriteSheet = new Texture("../assets/Player/WarriorRightAttack01.png");
+        int attackFrameCols = 6;
+        TextureRegion[][] attackTmp = TextureRegion.split(attackSpriteSheet, attackSpriteSheet.getWidth() / attackFrameCols, attackSpriteSheet.getHeight());
+
+        TextureRegion[] attackFrames = attackTmp[0];
+        Array<TextureRegion> attackFrameArray = new Array<>(attackFrames);
+
+        attackAnimation = new Animation<>(0.1f, attackFrameArray, Animation.PlayMode.LOOP);
+
+
+        // IDLE ANIMATION
+        Texture idleSpriteSheet = new Texture("../assets/Player/WarriorRightIdle.png");
+        int idleFrameCols = 5;
+        TextureRegion[][] idleTmp = TextureRegion.split(idleSpriteSheet, idleSpriteSheet.getWidth() / idleFrameCols, idleSpriteSheet.getHeight());
+
+        TextureRegion[] idleFrames = idleTmp[0];
+        Array<TextureRegion> idleFrameArray = new Array<>(idleFrames);
+
+        idleAnimation = new Animation<>(0.1f, idleFrameArray, Animation.PlayMode.LOOP);
+
+
+        // HURT ANIMATION
+        Texture hurtSpriteSheet = new Texture("../assets/Player/WarriorRightHurt.png");
+        int hurtFrameCols = 4;
+        TextureRegion[][] hurtTmp = TextureRegion.split(hurtSpriteSheet, hurtSpriteSheet.getWidth() / hurtFrameCols, hurtSpriteSheet.getHeight());
+
+        TextureRegion[] hurtFrames = hurtTmp[0];
+        Array<TextureRegion> hurtFrameArray = new Array<>(hurtFrames);
+
+        hurtAnimation = new Animation<>(0.1f, hurtFrameArray, Animation.PlayMode.LOOP);
+
+
+        // DEATH ANIMATION
+        Texture deathSpriteSheet = new Texture("../assets/Player/WarriorRightDeath.png");
+        int deathFrameCols = 5;
+        TextureRegion[][] deathTmp = TextureRegion.split(deathSpriteSheet, deathSpriteSheet.getWidth() / deathFrameCols, deathSpriteSheet.getHeight());
+
+        TextureRegion[] deathFrames = deathTmp[0];
+        Array<TextureRegion> deathFrameArray = new Array<>(deathFrames);
+
+        deathAnimation = new Animation<>(0.1f, deathFrameArray, Animation.PlayMode.LOOP);
+
+    }
+
+
+    public Animation<TextureRegion> getAttackAnimation() {
+        return attackAnimation;
+    }
+
+    public Animation<TextureRegion> getIdleAnimation() {
+        if (idleAnimation == null) {
+            System.out.println("IDLE ANIMATION IS NULL");
+        }
+            return idleAnimation;
+        }
+
+    public Animation<TextureRegion> getHurtAnimation() {
+        return hurtAnimation;
+    }
+
+    public Animation<TextureRegion> getDeathAnimation() {
+        return deathAnimation;
+    }
+
+    public Rectangle getHitbox() {
+        return boundingBox;
+    }
+
+    public PlayerState getState() {
+        return state;
+    }
+
+    public void setState(PlayerState newState) {
+        state = newState;
+        stateTime = 0f;
+    }
+
     public abstract void update(float delta, boolean moveUp, boolean moveDown, boolean moveLeft, boolean moveRight, ArrayList<Rectangle> collisionRectangles);
 
     public abstract void render(SpriteBatch batch);
@@ -90,17 +177,6 @@ public abstract class Player {
 
     public void setDefense(float defense) {
         this.defense = defense;
-    }
-
-//    public void attack(Enemy enemy) {
-//        float totalDamage = getDamage();
-//        enemy.takeDamage(totalDamage);
-//    }
-
-    public void receiveDamage(float damage) {
-        float damageTaken = Math.max(0, damage - getDefense());
-        health -= damageTaken;
-        System.out.println("Player took " + damageTaken + " damage!");
     }
 
     public float getHealth() {
@@ -133,5 +209,10 @@ public abstract class Player {
         walkUpTexture.dispose();
         walkRightTexture.dispose();
         walkLeftTexture.dispose();
+
+        if (attackAnimation != null) attackAnimation.getKeyFrames()[0].getTexture().dispose();
+        if (idleAnimation != null) idleAnimation.getKeyFrames()[0].getTexture().dispose();
+        if (hurtAnimation != null) hurtAnimation.getKeyFrames()[0].getTexture().dispose();
+        if (deathAnimation != null) deathAnimation.getKeyFrames()[0].getTexture().dispose();
     }
 }
