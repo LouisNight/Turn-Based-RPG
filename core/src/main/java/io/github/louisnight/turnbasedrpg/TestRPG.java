@@ -68,4 +68,18 @@ public class TestRPG extends Game {
                 break;
         }
     }
+    @Override
+    public void dispose() {
+        if (loadingScreen != null) loadingScreen.dispose();
+        if (menuScreen != null) menuScreen.dispose();
+        if (gameScreen != null) gameScreen.dispose();
+        if (optionsScreen != null) optionsScreen.dispose();
+        if (endScreen != null) endScreen.dispose();
+
+        if (preferences != null) {
+            // If AppPreferences uses external resources, clean them up
+        }
+
+        super.dispose();
+    }
 }
