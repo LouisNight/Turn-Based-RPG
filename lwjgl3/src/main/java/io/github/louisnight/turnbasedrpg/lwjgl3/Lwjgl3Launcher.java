@@ -12,11 +12,11 @@ public class Lwjgl3Launcher {
         config.setWindowedMode(800, 480);
         config.useVsync(true);
         config.setForegroundFPS(60);
-        new Lwjgl3Application(new TestRPG(), config);
 
-        if (StartupHelper.startNewJvmIfRequired()) return; // This handles macOS support and helps on Windows.
-        createApplication();
+        new Lwjgl3Application(new TestRPG(), config);
     }
+
+
 
     private static Lwjgl3Application createApplication() {
         return new Lwjgl3Application(new TestRPG(), getDefaultConfiguration());
