@@ -38,6 +38,10 @@ public class Orc extends Enemy {
 
 
     }
+    @Override
+    protected void initializeStats() {
+        health = 100f;
+    }
 
     @Override
     public void loadCombatAssets() {
@@ -53,8 +57,10 @@ public class Orc extends Enemy {
 
         Array<TextureRegion> attackFrames = new Array<>(thirdRowFramesAttack);
 
-        attackAnimation = new Animation<>(0.1f, attackFrames, Animation.PlayMode.LOOP);
-
+        attackAnimation = new Animation<>(0.1f, attackFrames, Animation.PlayMode.NORMAL);
+        if (attackAnimation == null) {
+            System.out.println("Attack animation for Orc is not initialized!");
+        }
         // IDLE ANIMATION
         Texture idleSpriteSheet = new Texture("../assets/Enemies/orc1_idle_full.png");
         int idleFrameCols = 4;
@@ -85,7 +91,7 @@ public class Orc extends Enemy {
 
         Array<TextureRegion> frames = new Array<>(thirdRowFramesHurt);
 
-        hurtAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.LOOP);
+        hurtAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.NORMAL);
 
         // DEATH ANIMATION
         Texture deathSpriteSheet = new Texture("../assets/Enemies/orc1_death_full.png");
@@ -98,7 +104,7 @@ public class Orc extends Enemy {
 
         Array<TextureRegion> deathFrames = new Array<>(thirdRowFramesDeath);
 
-        deathAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.LOOP);
+        deathAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.NORMAL);
     }
 
     @Override

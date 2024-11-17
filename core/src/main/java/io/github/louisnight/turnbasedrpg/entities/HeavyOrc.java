@@ -41,6 +41,11 @@ public class HeavyOrc extends Enemy {
     }
 
     @Override
+    protected void initializeStats() {
+        health = 100f;
+    }
+
+    @Override
     public void loadCombatAssets() {
 
         // ATTACK ANIMATION
@@ -54,8 +59,11 @@ public class HeavyOrc extends Enemy {
 
         Array<TextureRegion> attackFrames = new Array<>(thirdRowFramesAttack);
 
-        attackAnimation = new Animation<>(0.1f, attackFrames, Animation.PlayMode.LOOP);
+        attackAnimation = new Animation<>(0.1f, attackFrames, Animation.PlayMode.NORMAL);
 
+        if (attackAnimation == null) {
+            System.out.println("Attack animation for HeavyOrc is not initialized!");
+        }
         // IDLE ANIMATION
         Texture idleSpriteSheet = new Texture("../assets/Enemies/orc3_idle_full.png");
         int idleFrameCols = 4;
@@ -80,7 +88,7 @@ public class HeavyOrc extends Enemy {
 
         Array<TextureRegion> frames = new Array<>(thirdRowFramesHurt);
 
-        hurtAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.LOOP);
+        hurtAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.NORMAL);
 
 
         // DEATH ANIMATION
@@ -94,7 +102,7 @@ public class HeavyOrc extends Enemy {
 
         Array<TextureRegion> deathFrames = new Array<>(thirdRowFramesDeath);
 
-        deathAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.LOOP);
+        deathAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.NORMAL);
 
         if (idleAnimation == null) {
             System.out.println("Idle animation for Orc is not initialized!");

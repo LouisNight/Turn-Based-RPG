@@ -18,7 +18,7 @@ public abstract class Enemy {
     protected Animation<TextureRegion> walkLeftAnimation;
     protected Animation<TextureRegion> walkRightAnimation;
     protected Animation<TextureRegion> currentAnimation;
-    protected Animation<TextureRegion> walkAnimation;
+
     protected float health;
     protected Animation<TextureRegion> attackAnimation;
     protected Animation<TextureRegion> idleAnimation;
@@ -34,7 +34,10 @@ public abstract class Enemy {
         speed = 50f;
         state = EnemyState.IDLE;
         stateTime = 0f;
+        initializeStats();
     }
+
+    protected abstract void initializeStats();
 
     public EnemyState getState() {
         return state;

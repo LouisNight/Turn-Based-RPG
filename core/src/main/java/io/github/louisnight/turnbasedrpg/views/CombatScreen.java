@@ -5,30 +5,35 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.louisnight.turnbasedrpg.TestRPG;
 import io.github.louisnight.turnbasedrpg.entities.Enemy;
 import io.github.louisnight.turnbasedrpg.entities.EnemyState;
 import io.github.louisnight.turnbasedrpg.entities.Player.Player;
+import io.github.louisnight.turnbasedrpg.entities.Player.PlayerState;
 
 public class CombatScreen implements Screen {
 
     private SpriteBatch batch;
     private Player player;
     private Enemy enemy;
-    private Texture combatBackground;  // Background texture for combat screen
-    private Texture playerTexture;  // Texture for player sprite
-    private Texture enemyTexture;  // Texture for enemy sprite
+    private Texture combatBackground;
 
     private boolean playerTurn;
     private boolean isGameOver;
     private boolean playerWon;
-    private boolean enemyWon;
+
     private float stateTime;
+    private float actionDelayTimer = 0f;
+    private float turnDelayTimer = 0f;
+    private final float ACTION_DELAY = 1.5f; // Delay between actions
+    private final float TURN_DELAY = 2f;    // Additional delay between turns
 
     private Stage stage;
     private Skin skin;
@@ -63,20 +68,22 @@ public class CombatScreen implements Screen {
         defendButton = new TextButton("Defend", skin);
 
         // Add listeners for button clicks
-        attackButton.addListener(event -> {
-            if (playerTurn) {
-                playerAttack();
-                playerTurn = false;
+        attackButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (playerTurn && !isGameOver && turnDelayTimer >= TURN_DELAY) {
+                    playerAttack();
+                }
             }
-            return true;
         });
 
-        defendButton.addListener(event -> {
-            if (playerTurn) {
-                playerDefend();
-                playerTurn = false;
+        defendButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (playerTurn && !isGameOver && turnDelayTimer >= TURN_DELAY) {
+                    playerDefend();
+                }
             }
-            return true;
         });
 
         // Layout the buttons using a table
@@ -89,117 +96,128 @@ public class CombatScreen implements Screen {
         // Add the table to the stage
         stage.addActor(table);
 
-        // Set input processor to the stage for UI
+        // Set input processor to the stage
         Gdx.input.setInputProcessor(stage);
     }
 
     @Override
     public void render(float delta) {
-       stateTime += delta;
+        stateTime += delta;
+        actionDelayTimer += delta;
+        turnDelayTimer += delta;
 
         batch.begin();
-
         batch.draw(combatBackground, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-        TextureRegion playerFrame;
-        switch (player.getState()) {
-            case ATTACKING:
-                playerFrame = player.getAttackAnimation().getKeyFrame(stateTime, true);
-                break;
-            case HURT:
-                playerFrame = player.getHurtAnimation().getKeyFrame(stateTime, true);
-                break;
-            case DEAD:
-                playerFrame = player.getDeathAnimation().getKeyFrame(stateTime, false);  // Don't loop death animation
-                break;
-            case IDLE:
-            default:
-                playerFrame = player.getIdleAnimation().getKeyFrame(stateTime, true);
-                break;
-        }
-        batch.draw(playerFrame, 160, 180);  // Draw the player frame
+        TextureRegion playerFrame = getPlayerFrame();
+        TextureRegion enemyFrame = getEnemyFrame();
 
-        TextureRegion enemyFrame;
-        switch (enemy.getState()) {
-            case ATTACKING:
-                enemyFrame = enemy.getAttackAnimation().getKeyFrame(stateTime, true);
-                break;
-            case HURT:
-                enemyFrame = enemy.getHurtAnimation().getKeyFrame(stateTime, true);
-                break;
-            case DEAD:
-                enemyFrame = enemy.getDeathAnimation().getKeyFrame(stateTime, false);  // Play once, not loop
-                break;
-            case IDLE:
-            default:
-                enemyFrame = enemy.getIdleAnimation().getKeyFrame(stateTime, true);
-                break;
-        }
-        batch.draw(enemyFrame, 180, 180);
-
+        batch.draw(playerFrame, 160, 180, 128, 128);
+        batch.draw(enemyFrame, 600, 180, 128, 128);
         batch.end();
 
         stage.act(delta);
         stage.draw();
 
         if (!isGameOver) {
-            if (!playerTurn) {
-                enemyTurn(delta);
+            if (!playerTurn && actionDelayTimer >= ACTION_DELAY && turnDelayTimer >= TURN_DELAY) {
+                enemyTurn();
             }
         } else {
             endCombat();
         }
     }
 
+    private TextureRegion getPlayerFrame() {
+        switch (player.getState()) {
+            case ATTACKING:
+                if (player.getAttackAnimation().isAnimationFinished(stateTime)) {
+                    player.setState(PlayerState.IDLE);
+                }
+                return player.getAttackAnimation().getKeyFrame(stateTime, false);
+            case HURT:
+                if (player.getHurtAnimation().isAnimationFinished(stateTime)) {
+                    player.setState(PlayerState.IDLE);
+                }
+                return player.getHurtAnimation().getKeyFrame(stateTime, false);
+            case DEAD:
+                return player.getDeathAnimation().getKeyFrame(stateTime, false);
+            case IDLE:
+            default:
+                return player.getIdleAnimation().getKeyFrame(stateTime, true);
+        }
+    }
+
+    private TextureRegion getEnemyFrame() {
+        switch (enemy.getState()) {
+            case ATTACKING:
+                if (enemy.getAttackAnimation().isAnimationFinished(stateTime)) {
+                    enemy.setState(EnemyState.IDLE);
+                }
+                return enemy.getAttackAnimation().getKeyFrame(stateTime, false);
+            case HURT:
+                if (enemy.getHurtAnimation().isAnimationFinished(stateTime)) {
+                    enemy.setState(EnemyState.IDLE);
+                }
+                return enemy.getHurtAnimation().getKeyFrame(stateTime, false);
+            case DEAD:
+                return enemy.getDeathAnimation().getKeyFrame(stateTime, false);
+            case IDLE:
+            default:
+                return enemy.getIdleAnimation().getKeyFrame(stateTime, true);
+        }
+    }
 
     public void playerAttack() {
         System.out.println("Player attacks!");
+        player.setState(PlayerState.ATTACKING);
+        actionDelayTimer = 0f;
+        turnDelayTimer = 0f;
+        stateTime = 0f;
 
-        // Player hits the enemy
         enemy.setHealth(enemy.getHealth() - 20f);
-        enemy.setState(EnemyState.HURT);  // Set the state to HURT when hit
+        enemy.setState(EnemyState.HURT);
 
         if (enemy.getHealth() <= 0) {
-            enemy.setState(EnemyState.DEAD);  // Set to DEAD if the enemy's health reaches 0
+            enemy.setState(EnemyState.DEAD);
             isGameOver = true;
             playerWon = true;
             System.out.println("Enemy defeated!");
+        } else {
+            playerTurn = false; // End player's turn
         }
     }
 
     private void playerDefend() {
         System.out.println("Player defends!");
-
-        playerTurn = false;
+        turnDelayTimer = 0f;
+        playerTurn = false; // End player's turn
     }
 
-    private void enemyTurn(float delta) {
+    private void enemyTurn() {
         System.out.println("Enemy's Turn");
 
-        // Simulate a simple attack
         enemyAttack();
-
-        // Switch back to the player's turn
-        playerTurn = true;
     }
 
     private void enemyAttack() {
         System.out.println("Enemy attacks!");
-
-        // Set the state to ATTACKING when the enemy attacks
         enemy.setState(EnemyState.ATTACKING);
+        actionDelayTimer = 0f;
+        turnDelayTimer = 0f;
+        stateTime = 0f;
 
-        // Example: Reduce player health
         player.setHealth(player.getHealth() - 15);
+        player.setState(PlayerState.HURT);
 
-        // Check if the player is defeated
         if (player.getHealth() <= 0) {
-            enemy.setState(EnemyState.IDLE);  // Reset to idle after attack
+            player.setState(PlayerState.DEAD);
             isGameOver = true;
             playerWon = false;
             System.out.println("Player defeated!");
         } else {
-            enemy.setState(EnemyState.IDLE);  // Reset to idle after attack
+            enemy.setState(EnemyState.IDLE);
+            playerTurn = true; // Hand over turn to player
         }
     }
 
@@ -214,7 +232,9 @@ public class CombatScreen implements Screen {
     }
 
     @Override
-    public void show() {}
+    public void show() {
+        Gdx.input.setInputProcessor(stage);
+    }
 
     @Override
     public void resize(int width, int height) {}
