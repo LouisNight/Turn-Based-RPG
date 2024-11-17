@@ -89,7 +89,10 @@ public abstract class Player {
         TextureRegion[] attackFrames = attackTmp[0];
         Array<TextureRegion> attackFrameArray = new Array<>(attackFrames);
 
-        attackAnimation = new Animation<>(0.1f, attackFrameArray, Animation.PlayMode.LOOP);
+        attackAnimation = new Animation<>(0.1f, attackFrameArray, Animation.PlayMode.NORMAL);
+        if (attackAnimation == null) {
+            System.out.println("Attack animation failed to load");
+        }
 
 
         // IDLE ANIMATION
@@ -101,7 +104,9 @@ public abstract class Player {
         Array<TextureRegion> idleFrameArray = new Array<>(idleFrames);
 
         idleAnimation = new Animation<>(0.1f, idleFrameArray, Animation.PlayMode.LOOP);
-
+        if (idleAnimation == null) {
+            System.out.println("Idle animation failed to load");
+        }
 
         // HURT ANIMATION
         Texture hurtSpriteSheet = new Texture("../assets/Player/WarriorRightHurt.png");
@@ -111,8 +116,10 @@ public abstract class Player {
         TextureRegion[] hurtFrames = hurtTmp[0];
         Array<TextureRegion> hurtFrameArray = new Array<>(hurtFrames);
 
-        hurtAnimation = new Animation<>(0.1f, hurtFrameArray, Animation.PlayMode.LOOP);
-
+        hurtAnimation = new Animation<>(0.1f, hurtFrameArray, Animation.PlayMode.NORMAL);
+        if (hurtAnimation == null) {
+            System.out.println("Hurt animation failed to load");
+        }
 
         // DEATH ANIMATION
         Texture deathSpriteSheet = new Texture("../assets/Player/WarriorRightDeath.png");
@@ -122,8 +129,10 @@ public abstract class Player {
         TextureRegion[] deathFrames = deathTmp[0];
         Array<TextureRegion> deathFrameArray = new Array<>(deathFrames);
 
-        deathAnimation = new Animation<>(0.1f, deathFrameArray, Animation.PlayMode.LOOP);
-
+        deathAnimation = new Animation<>(0.1f, deathFrameArray, Animation.PlayMode.NORMAL);
+        if (deathAnimation == null) {
+            System.out.println("Death animation failed to load");
+        }
     }
 
 
@@ -155,8 +164,10 @@ public abstract class Player {
     }
 
     public void setState(PlayerState newState) {
-        state = newState;
-        stateTime = 0f;
+        if (state != newState) {
+            state = newState;
+            stateTime = 0f;  // Reset stateTime on state change
+        }
     }
 
     public abstract void update(float delta, boolean moveUp, boolean moveDown, boolean moveLeft, boolean moveRight, ArrayList<Rectangle> collisionRectangles);
