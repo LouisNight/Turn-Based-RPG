@@ -29,8 +29,4 @@ public abstract class Item {
     // Abstract method for using the item (to be implemented by specific items like Sword, Potion, etc.)
     public abstract void use();
 
-    // Optional: Dispose of texture if needed
-    public void dispose() {
-        texture.dispose();
-    }
 }
