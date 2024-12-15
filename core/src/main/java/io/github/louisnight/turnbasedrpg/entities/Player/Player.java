@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import io.github.louisnight.turnbasedrpg.inventory.Inventory;
 
 import java.util.ArrayList;
 
@@ -43,6 +44,9 @@ public abstract class Player {
 
     protected float damage;
     protected float defense;
+
+    private Inventory inventory;
+
 
     // Constructor
     public Player(float x, float y) {
@@ -214,6 +218,11 @@ public abstract class Player {
     public Vector2 getPosition() {
         return position;
     }
+
+    public Inventory getInventory() {
+        return inventory;
+    }
+
 
     public void dispose() {
         walkDownTexture.dispose();
