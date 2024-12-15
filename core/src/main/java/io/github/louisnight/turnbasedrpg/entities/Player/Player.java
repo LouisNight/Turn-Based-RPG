@@ -28,6 +28,7 @@ public abstract class Player {
     private Animation<TextureRegion> idleAnimation;
     private Animation<TextureRegion> hurtAnimation;
     private Animation<TextureRegion> deathAnimation;
+    private String name;
 
     protected boolean isMoving;
     protected Rectangle boundingBox;
@@ -45,8 +46,8 @@ public abstract class Player {
     protected float defense;
 
     // Constructor
-    public Player(float x, float y) {
-
+    public Player(float x, float y, String name) {
+        this.name = name;
         state = PlayerState.IDLE;
 
         walkDownTexture = new Texture("../assets/Player/WarriorDownWalk.png");
@@ -77,6 +78,10 @@ public abstract class Player {
 
         damage = 1f;
         defense = 5f;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public void loadCombatAssets() {
@@ -206,6 +211,11 @@ public abstract class Player {
         this.maxHealth = maxHealth;
         this.health = Math.min(this.health, maxHealth);
     }
+
+    public void setPosition(float x, float y) {
+        position.set(x, y);
+    }
+
 
     public Rectangle getBoundingBox() {
         return boundingBox;

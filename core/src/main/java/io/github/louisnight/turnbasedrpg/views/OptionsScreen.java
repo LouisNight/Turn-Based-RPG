@@ -23,10 +23,12 @@ public class OptionsScreen implements Screen {
     private Label musicOnOffLabel;
     private Label soundOnOffLabel;
     private final Stage stage = new Stage(new ScreenViewport());
+    private Screen returnScreen;
 
     // constructor with core/main argument
-    public OptionsScreen(TestRPG testRPG) {
+    public OptionsScreen(TestRPG testRPG, Screen returnScreen) {
         parent = testRPG;
+        this.returnScreen = returnScreen;
 
         stage.clear();
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
@@ -36,6 +38,7 @@ public class OptionsScreen implements Screen {
 
     @Override
     public void show() {
+        Gdx.input.setInputProcessor(stage);
         stage.clear();
         Skin skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
@@ -72,13 +75,15 @@ public class OptionsScreen implements Screen {
 
         // return to main screen button
         final TextButton backButton = new TextButton("Back", skin); // the extra argument here "small" is used to set the button to the smaller version instead of the big default version
-        backButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                parent.changeScreen(TestRPG.MENU);
+        backButton.addListener(event -> {
+            if (event.isHandled()) {
+                parent.setScreen(returnScreen); // Navigate to the return screen
+                return true;
             }
+            return false;
         });
 
+        stage.addActor(backButton);
 
         Table table = new Table();
         table.setFillParent(true);
@@ -162,7 +167,5 @@ public class OptionsScreen implements Screen {
     }
 
     @Override
-    public void dispose() {
-        stage.dispose();
-    }
+    public void dispose() { stage.dispose(); }
 }

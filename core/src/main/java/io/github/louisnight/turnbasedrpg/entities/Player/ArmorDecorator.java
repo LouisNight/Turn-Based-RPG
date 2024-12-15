@@ -11,7 +11,7 @@ public class ArmorDecorator extends Player {
     private float additionalDefense;
 
     public ArmorDecorator(Player decoratedPlayer, float additionalDefense) {
-        super(decoratedPlayer.getPosition().x, decoratedPlayer.getPosition().y);  // Call the parent constructor
+        super(decoratedPlayer.getPosition().x, decoratedPlayer.getPosition().y, decoratedPlayer.getName());  // Call the parent constructor
         this.decoratedPlayer = decoratedPlayer;
         this.additionalDefense = additionalDefense;
     }

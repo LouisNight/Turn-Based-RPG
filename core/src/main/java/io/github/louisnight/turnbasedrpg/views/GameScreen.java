@@ -31,6 +31,7 @@ import io.github.louisnight.turnbasedrpg.entities.EnemyFactory;
 import io.github.louisnight.turnbasedrpg.entities.Player.ImplementPlayer;
 import io.github.louisnight.turnbasedrpg.entities.Player.Player;
 import io.github.louisnight.turnbasedrpg.inventory.Inventory;
+import io.github.louisnight.turnbasedrpg.ui.HealthBar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,11 +60,16 @@ public class GameScreen implements Screen {
     private Texture healthBarRedTexture;
     private Image healthBarFrameImage;
     private Image healthBarRedImage;
+    private HealthBar playerHealthBar;
 
     private Inventory inventory;
     private boolean isInventoryOpen = false;
     private DragAndDrop dragAndDrop;
     private Stage inventoryStage;
+
+    private Stage menuStage;
+    private Table menuTable;
+    private Skin menuSkin;
 
     public GameScreen(TestRPG testRPG) {
         this.parent = testRPG;
@@ -71,6 +77,10 @@ public class GameScreen implements Screen {
         screenTransition = new ScreenTransition(1f);
 
         collisionRectangles = new ArrayList<>();
+
+        // saveLoadManager = SaveLoadManager.getInstance();
+
+        skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
         uiStage = new Stage(new ScreenViewport());
         inventoryStage = new Stage(new ScreenViewport());
@@ -85,11 +95,8 @@ public class GameScreen implements Screen {
         spawnEnemies();
 
         uiStage = new Stage(new ScreenViewport());
-        skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
-
-        player = new ImplementPlayer(1990, 100);
-
+        player = new ImplementPlayer("player1",1990, 100);
         player.setMaxHealth(100);
         player.setHealth(100);
 
@@ -105,6 +112,9 @@ public class GameScreen implements Screen {
         healthBarFrameImage.setSize(targetHealthBarWidth, targetHealthBarHeight);
         healthBarRedImage.setSize(targetHealthBarWidth, targetHealthBarHeight);
 
+        playerHealthBar = new HealthBar(healthBarFrameImage, healthBarRedImage);
+        playerHealthBar.addToStage(uiStage);
+
         Table healthBarTable = new Table();
         healthBarTable.top().left();
         healthBarTable.setFillParent(true);
@@ -117,6 +127,15 @@ public class GameScreen implements Screen {
             .left();
 
         uiStage.addActor(healthBarTable);
+
+        // Initialize menuStage
+        menuStage = new Stage(new ScreenViewport());
+        if (menuStage == null) {
+            throw new IllegalStateException("menuStage is not initialized properly.");
+        }
+        menuTable = new Table();
+        menuTable.setFillParent(true);
+        menuStage.addActor(menuTable);
 
         Gdx.input.setInputProcessor(uiStage);
 
@@ -131,6 +150,12 @@ public class GameScreen implements Screen {
         stage = new Stage(new ScreenViewport(camera));
 
         loadCollisionRectangles();
+    }
+
+    private void switchToCombatScreen() {
+        List<Enemy> singleEnemyList = new ArrayList<>();
+        singleEnemyList.add(collidedEnemy);
+        parent.setScreen(new CombatScreen(parent, player, singleEnemyList, playerHealthBar));
     }
 
    private void loadCollisionRectangles() {
@@ -204,36 +229,44 @@ public class GameScreen implements Screen {
             public void render(float delta) {
                 update(delta);
 
+                if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                    parent.setScreen(new EscMenuScreen(parent, player));
+                    return;
+                }
+
+                playerHealthBar.update(player.getHealth(), player.getMaxHealth());
+
                 Gdx.gl.glClearColor(0, 0, 0, 1);
                 Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-                handleInput(delta);
+                    uiStage.act(delta);
+                    uiStage.draw();
+
+                    batch.setProjectionMatrix(camera.combined);
+                    batch.begin();
+
+                    mapRenderer.setView(camera);
+                    mapRenderer.render();
+                    player.render(batch);
+
+                    for (Enemy enemy : enemies) {
+                        enemy.update(delta);
+                        enemy.render(batch);
+                    }
+
+                    batch.end();
+
+                    uiStage.draw();
+
+                    handleInput(delta);
 
                 Vector2 playerPosition = player.getPosition();
                 camera.position.set(playerPosition.x + camera.viewportWidth / 6, playerPosition.y + camera.viewportHeight / 6, 0);
                 camera.update();
 
-                batch.setProjectionMatrix(camera.combined);
-                batch.begin();
-
-                mapRenderer.setView(camera);
-                mapRenderer.render();
-                player.render(batch);
-
-                for (Enemy enemy : enemies) {
-                    enemy.update(delta);
-                    enemy.render(batch);
-
-                }
-                batch.end();
-
                 batch.begin();
                 screenTransition.render(batch);
                 batch.end();
-
-                // Render health bar
-                float healthPercentage = player.getHealth() / player.getMaxHealth();
-                healthBarRedImage.setWidth(healthBarFrameImage.getWidth() * healthPercentage);
 
                 uiStage.act(delta);
                 uiStage.draw();
@@ -271,8 +304,7 @@ public class GameScreen implements Screen {
 
             }
 
-            public void returnToOverworldWithWin(Enemy defeatedEnemy) {
-                enemies.remove(defeatedEnemy);
+            public void returnToOverworldWithWin() {
                 parent.setScreen(this);
             }
 
@@ -280,6 +312,16 @@ public class GameScreen implements Screen {
                 System.out.println("Player Defeated - HANDLE DEFEAT LOGIC");
                 parent.setScreen(this);
             }
+
+    public Vector2 getPlayerPosition() {
+        return new Vector2(player.getPosition());
+    }
+
+    public void restorePlayerPosition(Vector2 position) {
+        if (position != null) {
+            player.setPosition(position.x, position.y);
+        }
+    }
 
             private void handleInput(float delta){
                 if (Gdx.input.isKeyJustPressed(Input.Keys.I)) {
@@ -318,14 +360,14 @@ public class GameScreen implements Screen {
         }
     }
 
-            private void switchToCombatScreen() {
-                parent.setScreen(new CombatScreen(parent, player, collidedEnemy));
-            }
-
             @Override
             public void resize (int width, int height) {
                 viewport.update(width, height);
                 uiStage.getViewport().update(width, height, true);
+                menuStage.getViewport().update(width, height, true);
+
+                float targetHealthBarHeight = healthBarFrameImage.getHeight();
+                playerHealthBar.setPosition(20, height - targetHealthBarHeight - 20);
             }
 
             @Override
@@ -349,6 +391,8 @@ public class GameScreen implements Screen {
                 player.dispose();
                 batch.dispose();
                 uiStage.dispose();
+                menuStage.dispose();
+                menuSkin.dispose();
                 skin.dispose();
                 healthBarRedTexture.dispose();
                 healthBarFrameTexture.dispose();

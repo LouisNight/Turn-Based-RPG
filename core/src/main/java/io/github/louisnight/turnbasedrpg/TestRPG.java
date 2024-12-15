@@ -7,7 +7,6 @@ import io.github.louisnight.turnbasedrpg.views.*;
 public class TestRPG extends Game {
 
     private LoadingScreen loadingScreen;
-    private OptionsScreen optionsScreen;
     private GameScreen gameScreen;
     private EndScreen endScreen;
     private MenuScreen menuScreen;
@@ -26,16 +25,23 @@ public class TestRPG extends Game {
         loadingScreen = new LoadingScreen(this);
         menuScreen = new MenuScreen(this);  // Initialize MenuScreen
         gameScreen = new GameScreen(this);
-        optionsScreen = new OptionsScreen(this);
         endScreen = new EndScreen(this);
 
         // Set the initial screen (menu screen)
         setScreen(menuScreen);  // Start at the menu screen
     }
 
+    public MenuScreen getMenuScreen() {
+        return menuScreen;
+    }
+
+    public GameScreen getGameScreen() {
+        return gameScreen;
+    }
+
     // Return to overworld after winning combat
     public void returnToOverworldWithWin(Enemy defeatedEnemy) {
-        gameScreen.returnToOverworldWithWin(defeatedEnemy);
+        gameScreen.returnToOverworldWithWin();
     }
 
     // Return to overworld after losing combat
@@ -55,8 +61,7 @@ public class TestRPG extends Game {
                 setScreen(menuScreen);  // Go back to the main menu
                 break;
             case PREFERENCES:
-                if (optionsScreen == null) optionsScreen = new OptionsScreen(this);
-                setScreen(optionsScreen);  // Go to the preferences/options screen
+                setScreen(new OptionsScreen(this, menuScreen));  // Go to the preferences/options screen, return to menu when done
                 break;
             case APPLICATION:
                 if (gameScreen == null) gameScreen = new GameScreen(this);

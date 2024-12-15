@@ -11,7 +11,7 @@ public class WeaponDecorator extends Player {
     private float additionalDamage;
 
     public WeaponDecorator(Player decoratedPlayer, float additionalDamage) {
-        super(decoratedPlayer.getPosition().x, decoratedPlayer.getPosition().y);  // Call the parent constructor
+        super(decoratedPlayer.getPosition().x, decoratedPlayer.getPosition().y, decoratedPlayer.getName());  // Call the parent constructor
         this.decoratedPlayer = decoratedPlayer;
         this.additionalDamage = additionalDamage;
     }
