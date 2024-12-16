@@ -1,7 +1,6 @@
 package io.github.louisnight.turnbasedrpg;
 
 import com.badlogic.gdx.Game;
-import io.github.louisnight.turnbasedrpg.entities.Enemy;
 import io.github.louisnight.turnbasedrpg.views.*;
 
 public class TestRPG extends Game {
@@ -40,7 +39,7 @@ public class TestRPG extends Game {
     }
 
     // Return to overworld after winning combat
-    public void returnToOverworldWithWin(Enemy defeatedEnemy) {
+    public void returnToOverworldWithWin() {
         gameScreen.returnToOverworldWithWin();
     }
 
@@ -55,21 +54,23 @@ public class TestRPG extends Game {
 
     // Change screen based on user action
     public void changeScreen(int screen) {
+        if (getScreen() != null) getScreen().hide(); // Hide the current screen
+
         switch (screen) {
             case MENU:
                 if (menuScreen == null) menuScreen = new MenuScreen(this);
-                setScreen(menuScreen);  // Go back to the main menu
+                setScreen(menuScreen);
                 break;
             case PREFERENCES:
-                setScreen(new OptionsScreen(this, menuScreen));  // Go to the preferences/options screen, return to menu when done
+                setScreen(new OptionsScreen(this, getScreen())); // Pass the current screen as the return screen
                 break;
             case APPLICATION:
                 if (gameScreen == null) gameScreen = new GameScreen(this);
-                setScreen(gameScreen);  // Start the game (go to game screen)
+                setScreen(gameScreen);
                 break;
             case ENDGAME:
                 if (endScreen == null) endScreen = new EndScreen(this);
-                setScreen(endScreen);  // Show endgame screen
+                setScreen(endScreen);
                 break;
         }
     }
@@ -78,7 +79,6 @@ public class TestRPG extends Game {
         if (loadingScreen != null) loadingScreen.dispose();
         if (menuScreen != null) menuScreen.dispose();
         if (gameScreen != null) gameScreen.dispose();
-        if (optionsScreen != null) optionsScreen.dispose();
         if (endScreen != null) endScreen.dispose();
 
         if (preferences != null) {

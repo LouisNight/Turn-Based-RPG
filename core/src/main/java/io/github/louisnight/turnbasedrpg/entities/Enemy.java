@@ -4,8 +4,11 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+
+import java.util.ArrayList;
 
 public abstract class Enemy {
     protected Vector2 position;
@@ -29,6 +32,10 @@ public abstract class Enemy {
     protected float maxHealth;
     protected float currentHealth;
 
+    protected Vector2 direction;
+    protected float changeDirectionTimer;
+    protected float directionDuration;
+
     public Enemy(float x, float y, float maxHealth) {
         this.position = new Vector2(x, y);
         this.boundingBox = new Rectangle(x, y, 50, 50); // Default size
@@ -37,6 +44,10 @@ public abstract class Enemy {
         this.stateTime = 0f;
         this.maxHealth = maxHealth;
         this.currentHealth = maxHealth;
+
+        this.direction = new Vector2(MathUtils.random(-1, 1), MathUtils.random(-1, 1)).nor();
+        this.changeDirectionTimer = 0f;
+        this.directionDuration = MathUtils.random(2f, 5f);
         initializeStats();
     }
 
@@ -114,7 +125,30 @@ public abstract class Enemy {
     }
 
     protected void updateBoundingBox() {
-        boundingBox.setPosition(position.x, position.y);
+        float hitboxWidth = boundingBox.width;  // Use existing dimensions
+        float hitboxHeight = boundingBox.height;
+
+        // Center the hitbox over the enemy sprite
+        boundingBox.setPosition(
+            position.x + (getWidth() - hitboxWidth) / 2,
+            position.y + (getHeight() - hitboxHeight) / 2
+        );
+    }
+
+    public float getWidth() {
+        if (currentAnimation != null) {
+            TextureRegion frame = currentAnimation.getKeyFrame(stateTime);
+            return frame.getRegionWidth();
+        }
+        return 0; // Fallback
+    }
+
+    public float getHeight() {
+        if (currentAnimation != null) {
+            TextureRegion frame = currentAnimation.getKeyFrame(stateTime);
+            return frame.getRegionHeight();
+        }
+        return 0; // Fallback
     }
 
     public Rectangle getHitbox() {
@@ -125,11 +159,62 @@ public abstract class Enemy {
         position.set(x, y);
     }
 
+    public boolean checkCollisionWith(Rectangle other) {
+        return boundingBox.overlaps(other);
+    }
+
+    public Vector2 getPosition() {
+        return new Vector2(position.x, position.y);
+    }
+
 
     // Update and Render methods
-    public abstract void update(float delta);
+    public void update(float delta, ArrayList<Rectangle> collisionRectangles) {
+        stateTime += delta;
+
+        if (state != EnemyState.DEAD) {
+            // Update the direction change timer
+            changeDirectionTimer += delta;
+            if (changeDirectionTimer >= directionDuration) {
+                // Randomly pick a new direction
+                direction = new Vector2(MathUtils.random(-1, 1), MathUtils.random(-1, 1)).nor();
+                directionDuration = MathUtils.random(2f, 5f); // Set a new duration
+                changeDirectionTimer = 0f; // Reset the timer
+            }
+
+            // Save current position for collision rollback
+            float prevX = position.x;
+            float prevY = position.y;
+
+            // Update position based on direction
+            position.x += direction.x * speed * delta;
+            position.y += direction.y * speed * delta;
+            updateBoundingBox();
+
+            // Handle collision
+            for (Rectangle obstacle : collisionRectangles) {
+                if (checkCollisionWith(obstacle)) {
+                    // Rollback position if collision occurs
+                    position.x = prevX;
+                    position.y = prevY;
+                    updateBoundingBox();
+
+                    // Change direction after collision
+                    direction = new Vector2(MathUtils.random(-1, 1), MathUtils.random(-1, 1)).nor();
+                    break;
+                }
+            }
+        }
+    }
+
+
 
     public void render(SpriteBatch batch) {
+        if (state == null) {
+            System.out.println("Warning: Enemy state is null. Defaulting to IDLE.");
+            state = EnemyState.IDLE;
+        }
+
         if (currentAnimation != null) {
             TextureRegion currentFrame = currentAnimation.getKeyFrame(stateTime, true);
             batch.draw(currentFrame, position.x, position.y);

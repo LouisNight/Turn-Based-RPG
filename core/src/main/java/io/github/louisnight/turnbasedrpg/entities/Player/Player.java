@@ -226,7 +226,7 @@ public abstract class Player {
     }
 
     public Vector2 getPosition() {
-        return position;
+        return new Vector2(position.x, position.y);
     }
 
     public Inventory getInventory() {

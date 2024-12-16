@@ -74,13 +74,16 @@ public class OptionsScreen implements Screen {
         });
 
         // return to main screen button
-        final TextButton backButton = new TextButton("Back", skin); // the extra argument here "small" is used to set the button to the smaller version instead of the big default version
-        backButton.addListener(event -> {
-            if (event.isHandled()) {
-                parent.setScreen(returnScreen); // Navigate to the return screen
-                return true;
+        final TextButton backButton = new TextButton("Back", skin);
+
+        backButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                // Set the parent back to the previous screen (ESC Menu in this case)
+                if (returnScreen != null) {
+                    parent.setScreen(returnScreen); // Navigate back to the ESC Screen
+                }
             }
-            return false;
         });
 
         stage.addActor(backButton);
@@ -120,7 +123,6 @@ public class OptionsScreen implements Screen {
         table.add(backButton).colspan(2);
 
         stage.addActor(table);
-        Gdx.input.setInputProcessor(stage);
     }
 
     private void toggleFullscreen() {
@@ -167,5 +169,5 @@ public class OptionsScreen implements Screen {
     }
 
     @Override
-    public void dispose() { stage.dispose(); }
+    public void dispose() { }
 }

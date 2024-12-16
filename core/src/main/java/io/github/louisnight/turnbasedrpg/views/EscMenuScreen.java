@@ -18,6 +18,7 @@ public class EscMenuScreen implements Screen {
     private final TestRPG parent;
     private final Stage stage;
     private final Player player;
+    private boolean visible = false;
 
     public EscMenuScreen(TestRPG parent, Player player) {
         this.parent = parent;
@@ -31,6 +32,7 @@ public class EscMenuScreen implements Screen {
         // Set up table layout for buttons
         Table table = new Table();
         table.setFillParent(true);
+        table.setVisible(true);
         stage.addActor(table);
 
         // Create buttons
@@ -51,12 +53,13 @@ public class EscMenuScreen implements Screen {
         table.row();
         table.add(quitButton).fillX().uniformX();
 
-        // Add button listeners
+        table.layout();
 
         // Resume button listener
         resumeButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                parent.getGameScreen().toggleEscMenu(); // Close the ESC Menu
                 parent.setScreen(parent.getGameScreen()); // Return to the game screen
             }
         });
@@ -93,6 +96,21 @@ public class EscMenuScreen implements Screen {
             }
         });
     }
+
+
+    public Stage getStage() {
+        return stage;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+        System.out.println("ESC Menu Visibility Set to: " + visible); // Debug log
+    }
+
 
     @Override
     public void show() {
