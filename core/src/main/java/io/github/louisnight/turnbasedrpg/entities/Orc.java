@@ -5,8 +5,11 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+
+import java.util.ArrayList;
 
 public class Orc extends Enemy {
     private Vector2 direction;
@@ -17,7 +20,10 @@ public class Orc extends Enemy {
         super(x, y, 100f);
 
         texture = new Texture("../assets/Enemies/orc1_walk_full.png");
-        boundingBox.setSize(25, 25);
+
+        float spriteWidth = 64f; // Assuming each frame is 64x64
+        float spriteHeight = 64f;
+        boundingBox.setSize(spriteWidth * 0.6f, spriteHeight * 0.6f); // Adjust proportionally
 
         TextureRegion[][] tmpFrames = TextureRegion.split(texture, 64, 64);
         walkDownAnimation = new Animation<>(0.1f, tmpFrames[0]);
@@ -85,24 +91,11 @@ public class Orc extends Enemy {
     }
 
     @Override
-    public void update(float delta) {
-        stateTime += delta;
-
-        if (state != EnemyState.DEAD) {
-            // Update direction logic
-            changeDirectionTimer += delta;
-            if (changeDirectionTimer >= directionDuration) {
-                direction = new Vector2(MathUtils.random(-1, 1), MathUtils.random(-1, 1)).nor();
-                directionDuration = MathUtils.random(2f, 5f);
-                changeDirectionTimer = 0f;
-            }
-
-            // Update position
-            position.x += direction.x * speed * delta;
-            position.y += direction.y * speed * delta;
-            updateBoundingBox();
-        }
+    public void update(float delta, ArrayList<Rectangle> collisionRectangles) {
+        super.update(delta, collisionRectangles); // Call the parent class's update method
     }
+
+
 
     @Override
     public void render(SpriteBatch batch) {

@@ -40,7 +40,7 @@ public class CombatScreen implements Screen {
     private float enemyStateTime = 0f;
     private float actionDelayTimer = 0f;
     private float turnDelayTimer = 0f;
-    private final float ACTION_DELAY = 1.5f; // Delay between actions
+    private float ACTION_DELAY = 1.5f; // Delay between actions
     private final float TURN_DELAY = 2f;    // Additional delay between turns
 
     private HealthBar playerHealthBar;
@@ -51,6 +51,9 @@ public class CombatScreen implements Screen {
     private TextButton defendButton;
     private boolean isCombatOver;
 
+    private final float PLAYER_SCALE = 1.5f;
+    private final float ENEMY_SCALE = 1.5f;
+
     private TestRPG parent;
 
     public CombatScreen(TestRPG parent, Player player, List<Enemy> enemies, HealthBar playerHealthBar) {
@@ -60,13 +63,16 @@ public class CombatScreen implements Screen {
         this.isCombatOver = false;
 
         this.playerHealthBar = playerHealthBar;
-
+        this.playerHealthBar.setSize(150,30);
         playerHealthBar.setPosition(50, Gdx.graphics.getHeight() - playerHealthBar.getHeight() - 50);
+
+
         for (Enemy enemy : enemies) {
             HealthBar enemyHealthBar = new HealthBar(
                 new Image(new Texture("../assets/UI/Health_01_16x16.png")),
                 new Image(new Texture("../assets/UI/Health_01_Bar01_16x16.png"))
             );
+            enemyHealthBar.setSize(150,30);
             enemyHealthBar.setPosition(Gdx.graphics.getWidth() - enemyHealthBar.getWidth() - 150, Gdx.graphics.getHeight() - enemyHealthBar.getHeight() - 80);
             enemyHealthBars.add(enemyHealthBar);
             enemyHealthBar.setSize(playerHealthBar.getWidth(), playerHealthBar.getHeight());
@@ -146,40 +152,58 @@ public class CombatScreen implements Screen {
         batch.begin();
         batch.draw(combatBackground, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
+        System.out.println("Enemy Attack Animation Progress: " + enemies.get(0).getAttackAnimation().getKeyFrameIndex(enemyStateTime));
+        System.out.println("Is Animation Finished? " + enemies.get(0).getAttackAnimation().isAnimationFinished(enemyStateTime));
+
         // Only handle first enemy for simplicity
 
-        float playerX = 100; // Adjust these values to where you want the player to be on the screen
+        float playerX = 100; // Adjust for positioning
         float playerY = 150;
-        batch.draw(getPlayerFrame(), playerX, playerY);
+        TextureRegion playerFrame = getPlayerFrame();
+        batch.draw(
+            playerFrame,
+            playerX, playerY,
+            playerFrame.getRegionWidth() * PLAYER_SCALE,  // Scaled width
+            playerFrame.getRegionHeight() * PLAYER_SCALE // Scaled height
+        );
 
-        // Draw enemy sprite at a fixed position (e.g., bottom right of the screen)
-        float enemyX = Gdx.graphics.getWidth() - 300; // Adjust value to place enemy near the right edge
-        float enemyY = 150;
-        batch.draw(getEnemyFrame(enemies.get(0)), enemyX, enemyY);
+// Render the first enemy with scaling
+        if (!enemies.isEmpty()) {
+            float enemyX = Gdx.graphics.getWidth() - 300; // Adjust for positioning
+            float enemyY = 150;
+            TextureRegion enemyFrame = getEnemyFrame(enemies.get(0));
+            batch.draw(
+                enemyFrame,
+                enemyX, enemyY,
+                enemyFrame.getRegionWidth() * ENEMY_SCALE,  // Scaled width
+                enemyFrame.getRegionHeight() * ENEMY_SCALE // Scaled height
+            );
+        }
 
         batch.end();
 
         stage.act(delta);
         stage.draw();
-
         if (!isGameOver) {
             if (playerTurn) {
-                // Wait for the player to complete their action
                 if (player.getState() == PlayerState.IDLE && turnDelayTimer >= TURN_DELAY) {
-                    // Player input is required for the next action
                     stage.act(delta);
                     stage.draw();
                 }
-            } else {
-                // Enemy's turn
-                if (actionDelayTimer >= ACTION_DELAY && enemyStateTime >= TURN_DELAY) {
+            } else if (!enemies.isEmpty()) { // Ensure there are enemies before proceeding
+                if (enemies.get(0).getState() == EnemyState.ATTACKING) {
+                    if (enemies.get(0).getAttackAnimation().isAnimationFinished(enemyStateTime)) {
+                        enemies.get(0).setState(EnemyState.IDLE);
+                        playerTurn = true;
+                        turnDelayTimer = 0f;
+                    }
+                } else if (actionDelayTimer >= ACTION_DELAY) {
                     enemyTurn();
                 }
             }
         } else {
             endCombat();
         }
-
     }
 
     private void playerAttack(Enemy targetEnemy) {
@@ -209,22 +233,45 @@ public class CombatScreen implements Screen {
     }
 
     private void enemyTurn() {
-        System.out.println("Enemy's Turn");
+        Enemy enemy = enemies.get(0); // Only handling the first enemy for simplicity
+        if (enemy.getState() == EnemyState.IDLE) {
+            System.out.println("Enemy starts attacking!");
 
-        for (Enemy enemy : enemies) {
-            if (enemy.getState() == EnemyState.IDLE) {
-                enemyAttack(enemy); // Target the first available enemy that is idle
-                break;
+            // Set the enemy state to ATTACKING
+            enemy.setState(EnemyState.ATTACKING);
+
+            // Reset state time for the attack animation
+            enemyStateTime = 0f;
+
+            // Apply damage to the player immediately
+            player.setHealth(player.getHealth() - 15);
+            player.setState(PlayerState.HURT);
+
+            System.out.println("Player health after attack: " + player.getHealth());
+
+            // Check if the player is defeated
+            if (player.getHealth() <= 0) {
+                System.out.println("Player defeated!");
+                player.setState(PlayerState.DEAD);
+                isGameOver = true;
+                playerWon = false;
             }
         }
     }
 
+
     private void enemyAttack(Enemy attackingEnemy) {
         System.out.println("Enemy attacks!");
-
+        System.out.println("Enemy Attack Animation Duration: " + attackingEnemy.getAttackAnimation().getAnimationDuration());
+        System.out.println("Current ACTION_DELAY: " + ACTION_DELAY);
         // Set the enemy's state to ATTACKING and reset its state time
         attackingEnemy.setState(EnemyState.ATTACKING);
         enemyStateTime = 0f;
+
+        float animationDuration = attackingEnemy.getAttackAnimation().getAnimationDuration();
+        actionDelayTimer = 0f;
+        ACTION_DELAY = Math.max(animationDuration + 0.3f, 1.5f); // Ensure at least 1.5 seconds
+        System.out.println("ACTION_DELAY dynamically set to: " + ACTION_DELAY);
 
         // Apply damage to the player
         player.setHealth(player.getHealth() - 15);
@@ -270,24 +317,36 @@ public class CombatScreen implements Screen {
     private TextureRegion getEnemyFrame(Enemy enemy) {
         switch (enemy.getState()) {
             case ATTACKING:
-                if (enemy.getAttackAnimation().isAnimationFinished(enemyStateTime)) {
+                System.out.println("Enemy Attack Animation Progress: " + enemyStateTime);
+                if (enemy.getAttackAnimation().isAnimationFinished(enemyStateTime) && actionDelayTimer >= ACTION_DELAY) {
+                    System.out.println("Enemy attack animation finished. Switching to IDLE.");
                     enemy.setState(EnemyState.IDLE);
+                    enemyStateTime = 0f; // Reset animation time
                 }
                 return enemy.getAttackAnimation().getKeyFrame(enemyStateTime, false);
+
             case HURT:
-                if (enemy.getHurtAnimation().isAnimationFinished(enemyStateTime) && actionDelayTimer > 0.5f) {
+                if (enemy.getHurtAnimation().isAnimationFinished(enemyStateTime)) {
+                    System.out.println("Enemy hurt animation finished. Switching to IDLE.");
                     enemy.setState(EnemyState.IDLE);
+                    enemyStateTime = 0f;
                 }
                 return enemy.getHurtAnimation().getKeyFrame(enemyStateTime, false);
+
             case DEAD:
-                if (enemy.getDeathAnimation().isAnimationFinished(enemyStateTime) && actionDelayTimer > 0.5f) {
+                if (enemy.getDeathAnimation().isAnimationFinished(enemyStateTime)) {
+                    System.out.println("Enemy death animation finished. Removing enemy.");
                     removeDefeatedEnemy(enemy);
-                }// Remove enemy after delay
+                }
+                return enemy.getDeathAnimation().getKeyFrame(enemyStateTime, false);
+
             case IDLE:
             default:
                 return enemy.getIdleAnimation().getKeyFrame(enemyStateTime, true);
         }
     }
+
+
 
     private void removeDefeatedEnemy(Enemy enemy) {
         int index = enemies.indexOf(enemy);

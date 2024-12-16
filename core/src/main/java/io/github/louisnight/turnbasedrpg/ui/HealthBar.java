@@ -22,6 +22,14 @@ public class HealthBar {
         redBarImage.remove(); // Remove the red bar image from the stage
     }
 
+    public Image getFrameImage() {
+        return frameImage;
+    }
+
+    public Image getRedBarImage() {
+        return redBarImage;
+    }
+
 
     // Update the size of the red bar to reflect current health
     public void update(float currentHealth, float maxHealth) {
