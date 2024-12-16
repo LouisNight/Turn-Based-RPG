@@ -12,20 +12,18 @@ public class Orc extends Enemy {
     private Vector2 direction;
     private float changeDirectionTimer;
     private float directionDuration;
-    private EnemyState state;
 
     public Orc(float x, float y) {
-        super(x, y);
+        super(x, y, 100f);
 
         texture = new Texture("../assets/Enemies/orc1_walk_full.png");
-        loadCombatAssets();
         boundingBox.setSize(25, 25);
 
         TextureRegion[][] tmpFrames = TextureRegion.split(texture, 64, 64);
-        walkDownAnimation = new Animation<TextureRegion>(0.1f, tmpFrames[0]);
-        walkUpAnimation = new Animation<TextureRegion>(0.1f, tmpFrames[1]);
-        walkLeftAnimation = new Animation<TextureRegion>(0.1f, tmpFrames[2]);
-        walkRightAnimation = new Animation<TextureRegion>(0.1f, tmpFrames[3]);
+        walkDownAnimation = new Animation<>(0.1f, tmpFrames[0]);
+        walkUpAnimation = new Animation<>(0.1f, tmpFrames[1]);
+        walkLeftAnimation = new Animation<>(0.1f, tmpFrames[2]);
+        walkRightAnimation = new Animation<>(0.1f, tmpFrames[3]);
 
         currentAnimation = walkDownAnimation;
         position = new Vector2(x, y);
@@ -36,49 +34,36 @@ public class Orc extends Enemy {
         changeDirectionTimer = 0f;
         directionDuration = MathUtils.random(2f, 5f);
 
+        initializeStats();
+        state = EnemyState.IDLE;
 
+        loadCombatAssets(); // Ensure combat assets are loaded after all initializations
     }
+
     @Override
     protected void initializeStats() {
-        health = 100f;
+        maxHealth = 100f;
     }
 
     @Override
     public void loadCombatAssets() {
-
         // ATTACK ANIMATION
         Texture attackSpriteSheet = new Texture("../assets/Enemies/orc1_attack_full.png");
         int attackFrameCols = 8;
         int attackFrameRows = 4;
         TextureRegion[][] attackTmp = TextureRegion.split(attackSpriteSheet, attackSpriteSheet.getWidth() / attackFrameCols,
             attackSpriteSheet.getHeight() / attackFrameRows);
+        TextureRegion[] attackFrames = attackTmp[2];
+        attackAnimation = new Animation<>(0.1f, new Array<>(attackFrames), Animation.PlayMode.NORMAL);
 
-        TextureRegion[] thirdRowFramesAttack = attackTmp[2];
-
-        Array<TextureRegion> attackFrames = new Array<>(thirdRowFramesAttack);
-
-        attackAnimation = new Animation<>(0.1f, attackFrames, Animation.PlayMode.NORMAL);
-        if (attackAnimation == null) {
-            System.out.println("Attack animation for Orc is not initialized!");
-        }
         // IDLE ANIMATION
         Texture idleSpriteSheet = new Texture("../assets/Enemies/orc1_idle_full.png");
         int idleFrameCols = 4;
         int idleFrameRows = 4;
         TextureRegion[][] idleTmp = TextureRegion.split(idleSpriteSheet, idleSpriteSheet.getWidth() / idleFrameCols,
             idleSpriteSheet.getHeight() / idleFrameRows);
-
-        TextureRegion[] thirdRowFramesIdle = idleTmp[2];
-
-        Array<TextureRegion> idleFrames = new Array<>(thirdRowFramesIdle);
-
-        idleAnimation = new Animation<>(0.1f, idleFrames, Animation.PlayMode.LOOP);
-
-        if (idleAnimation == null) {
-            System.out.println("Idle animation for Orc is not initialized!");
-        } else {
-            System.out.println("Idle animation for Orc is successfully initialized.");
-        }
+        TextureRegion[] idleFrames = idleTmp[2];
+        idleAnimation = new Animation<>(0.1f, new Array<>(idleFrames), Animation.PlayMode.LOOP);
 
         // HURT ANIMATION
         Texture hurtSpriteSheet = new Texture("../assets/Enemies/orc1_hurt_full.png");
@@ -86,12 +71,8 @@ public class Orc extends Enemy {
         int hurtFrameRows = 4;
         TextureRegion[][] hurtTmp = TextureRegion.split(hurtSpriteSheet, hurtSpriteSheet.getWidth() / hurtFrameCols,
             hurtSpriteSheet.getHeight() / hurtFrameRows);
-
-        TextureRegion[] thirdRowFramesHurt = hurtTmp[2];
-
-        Array<TextureRegion> frames = new Array<>(thirdRowFramesHurt);
-
-        hurtAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.NORMAL);
+        TextureRegion[] hurtFrames = hurtTmp[2];
+        hurtAnimation = new Animation<>(0.1f, new Array<>(hurtFrames), Animation.PlayMode.NORMAL);
 
         // DEATH ANIMATION
         Texture deathSpriteSheet = new Texture("../assets/Enemies/orc1_death_full.png");
@@ -99,59 +80,51 @@ public class Orc extends Enemy {
         int deathFrameRows = 4;
         TextureRegion[][] deathTmp = TextureRegion.split(deathSpriteSheet, deathSpriteSheet.getWidth() / deathFrameCols,
             deathSpriteSheet.getHeight() / deathFrameRows);
-
-        TextureRegion[] thirdRowFramesDeath = deathTmp[2];
-
-        Array<TextureRegion> deathFrames = new Array<>(thirdRowFramesDeath);
-
-        deathAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.NORMAL);
+        TextureRegion[] deathFrames = deathTmp[2];
+        deathAnimation = new Animation<>(0.1f, new Array<>(deathFrames), Animation.PlayMode.NORMAL);
     }
 
     @Override
     public void update(float delta) {
-        stateTime += delta;  // Track the time for animation frames
+        stateTime += delta;
 
         if (state != EnemyState.DEAD) {
-            // If no action is happening, default to IDLE
-            if (state != EnemyState.ATTACKING && state != EnemyState.HURT) {
-                state = EnemyState.IDLE;
+            // Update direction logic
+            changeDirectionTimer += delta;
+            if (changeDirectionTimer >= directionDuration) {
+                direction = new Vector2(MathUtils.random(-1, 1), MathUtils.random(-1, 1)).nor();
+                directionDuration = MathUtils.random(2f, 5f);
+                changeDirectionTimer = 0f;
             }
 
-            // Movement or action logic
+            // Update position
             position.x += direction.x * speed * delta;
             position.y += direction.y * speed * delta;
-            updateBoundingBox();  // Ensure the hitbox is updated with position
+            updateBoundingBox();
         }
     }
 
     @Override
     public void render(SpriteBatch batch) {
-        TextureRegion currentFrame = null;
-
-        switch (state) {
-            case ATTACKING:
-                System.out.println("State: ATTACKING");
-                currentFrame = attackAnimation != null ? attackAnimation.getKeyFrame(stateTime, true) : null;
-                break;
-            case HURT:
-                System.out.println("State: HURT");
-                currentFrame = hurtAnimation != null ? hurtAnimation.getKeyFrame(stateTime, true) : null;
-                break;
-            case DEAD:
-                System.out.println("State: DEAD");
-                currentFrame = deathAnimation != null ? deathAnimation.getKeyFrame(stateTime, false) : null;
-                break;
-            case IDLE:
-            default:
-                System.out.println("State: IDLE");
-                currentFrame = idleAnimation != null ? idleAnimation.getKeyFrame(stateTime, true) : null;
-                break;
-        }
-
+        TextureRegion currentFrame = getCurrentFrame();
         if (currentFrame != null) {
             batch.draw(currentFrame, position.x, position.y);
         } else {
-            System.out.println("No animation available for current state: " + state);
+            System.out.println("No frame available for rendering!");
+        }
+    }
+
+    private TextureRegion getCurrentFrame() {
+        switch (state) {
+            case ATTACKING:
+                return attackAnimation.getKeyFrame(stateTime, false);
+            case HURT:
+                return hurtAnimation.getKeyFrame(stateTime, false);
+            case DEAD:
+                return deathAnimation.getKeyFrame(stateTime, false);
+            case IDLE:
+            default:
+                return idleAnimation.getKeyFrame(stateTime, true);
         }
     }
 }

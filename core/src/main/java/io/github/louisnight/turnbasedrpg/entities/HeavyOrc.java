@@ -14,8 +14,11 @@ public class HeavyOrc extends Enemy {
     private float directionDuration;
     private EnemyState state;
 
+    protected float health;
+    protected float maxHealth;
+
     public HeavyOrc(float x, float y) {
-        super(x, y);
+        super(x, y, 120f);
 
         texture = new Texture("../assets/Enemies/orc3_walk_full.png");
         loadCombatAssets();
@@ -42,7 +45,8 @@ public class HeavyOrc extends Enemy {
 
     @Override
     protected void initializeStats() {
-        health = 100f;
+        maxHealth = 100f;
+        health = maxHealth;
     }
 
     @Override

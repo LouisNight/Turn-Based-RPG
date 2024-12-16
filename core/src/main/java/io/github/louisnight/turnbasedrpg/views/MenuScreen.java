@@ -63,11 +63,11 @@ public class MenuScreen implements Screen {
             }
         });
 
-        // Listener for "Preferences" button
+        // Listener for "OPTIONS" button
         preferences.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                parent.changeScreen(TestRPG.PREFERENCES);  // Open options screen
+                parent.setScreen(new OptionsScreen(parent, MenuScreen.this));  // Open options screen
             }
         });
     }

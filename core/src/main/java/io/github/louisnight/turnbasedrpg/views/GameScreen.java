@@ -33,7 +33,11 @@ import io.github.louisnight.turnbasedrpg.entities.EnemyFactory;
 import io.github.louisnight.turnbasedrpg.entities.Player.ImplementPlayer;
 import io.github.louisnight.turnbasedrpg.entities.Player.Player;
 import io.github.louisnight.turnbasedrpg.inventory.Inventory;
+
+import io.github.louisnight.turnbasedrpg.ui.HealthBar;
+
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +66,7 @@ public class GameScreen implements Screen {
     private Texture healthBarRedTexture;
     private Image healthBarFrameImage;
     private Image healthBarRedImage;
+    private HealthBar playerHealthBar;
 
     private Inventory inventory;
     private boolean isInventoryOpen = false;
@@ -71,6 +76,10 @@ public class GameScreen implements Screen {
 
     private boolean debugMode = false;
 
+    private Stage menuStage;
+    private Table menuTable;
+    private Skin menuSkin;
+
     public GameScreen(TestRPG testRPG) {
         this.parent = testRPG;
 
@@ -78,6 +87,11 @@ public class GameScreen implements Screen {
 
         collisionRectangles = new ArrayList<>();
 
+        // saveLoadManager = SaveLoadManager.getInstance();
+
+        uiStage = new Stage(new ScreenViewport());
+
+        dragAndDrop = new DragAndDrop();
         uiStage = new Stage(new FitViewport(400, 300)); // UI Stage for overlay
         skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
         inventory = new Inventory(skin, uiStage);
@@ -88,7 +102,11 @@ public class GameScreen implements Screen {
         enemies = new ArrayList<>();
         spawnEnemies();
 
+
+        uiStage = new Stage(new ScreenViewport());
+
         player = new ImplementPlayer(400, 650);
+
 
         player.setMaxHealth(100);
         player.setHealth(100);
@@ -105,6 +123,9 @@ public class GameScreen implements Screen {
         healthBarFrameImage.setSize(targetHealthBarWidth, targetHealthBarHeight);
         healthBarRedImage.setSize(targetHealthBarWidth, targetHealthBarHeight);
 
+        playerHealthBar = new HealthBar(healthBarFrameImage, healthBarRedImage);
+        playerHealthBar.addToStage(uiStage);
+
         Table healthBarTable = new Table();
         healthBarTable.top().left();
         healthBarTable.setFillParent(true);
@@ -118,7 +139,19 @@ public class GameScreen implements Screen {
 
         uiStage.addActor(healthBarTable);
 
-        // Camera setup
+
+        // Initialize menuStage
+        menuStage = new Stage(new ScreenViewport());
+        if (menuStage == null) {
+            throw new IllegalStateException("menuStage is not initialized properly.");
+        }
+        menuTable = new Table();
+        menuTable.setFillParent(true);
+        menuStage.addActor(menuTable);
+
+        Gdx.input.setInputProcessor(uiStage);
+
+
         camera = new OrthographicCamera();
         viewport = new FitViewport(400, 300, camera);
 
@@ -137,6 +170,16 @@ public class GameScreen implements Screen {
         // Load chests for the current area
         chests = chestManager.getChestsForArea("Dungeon1");
     }
+
+
+    private void switchToCombatScreen() {
+        List<Enemy> singleEnemyList = new ArrayList<>();
+        singleEnemyList.add(collidedEnemy);
+        parent.setScreen(new CombatScreen(parent, player, singleEnemyList, playerHealthBar));
+    }
+
+   private void loadCollisionRectangles() {
+        collisionRectangles = new ArrayList<>();
 
 
 
@@ -190,6 +233,42 @@ public class GameScreen implements Screen {
             isInventoryOpen = !isInventoryOpen;
         }
 
+
+                if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                    parent.setScreen(new EscMenuScreen(parent, player));
+                    return;
+                }
+
+                playerHealthBar.update(player.getHealth(), player.getMaxHealth());
+
+                Gdx.gl.glClearColor(0, 0, 0, 1);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+                    uiStage.act(delta);
+                    uiStage.draw();
+
+                    batch.setProjectionMatrix(camera.combined);
+                    batch.begin();
+
+                    mapRenderer.setView(camera);
+                    mapRenderer.render();
+                    player.render(batch);
+
+                    for (Enemy enemy : enemies) {
+                        enemy.update(delta);
+                        enemy.render(batch);
+                    }
+
+                    batch.end();
+
+                    uiStage.draw();
+
+                    handleInput(delta);
+
+                Vector2 playerPosition = player.getPosition();
+                camera.position.set(playerPosition.x + camera.viewportWidth / 6, playerPosition.y + camera.viewportHeight / 6, 0);
+                camera.update();
+
         if (!isInventoryOpen) {
             boolean moveUp = Gdx.input.isKeyPressed(Input.Keys.W);
             boolean moveDown = Gdx.input.isKeyPressed(Input.Keys.S);
@@ -224,12 +303,16 @@ public class GameScreen implements Screen {
             chest.render(batch);
         }
 
+                uiStage.act(delta);
+                uiStage.draw();
+
         for (Enemy enemy : enemies) {
             enemy.update(delta);
             enemy.render(batch);
         }
 
         player.render(batch);
+
 
         batch.end();
 
@@ -274,7 +357,13 @@ public class GameScreen implements Screen {
                 shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
             }
 
+
+            public void returnToOverworldWithWin() {
+                parent.setScreen(this);
+            }
+          
             shapeRenderer.setColor(Color.BLUE);
+
 
             for (Enemy enemy : enemies) {
                 Rectangle enemyBoundingBox = enemy.getBoundingBox();
@@ -286,6 +375,31 @@ public class GameScreen implements Screen {
         }
     }
 
+
+    public Vector2 getPlayerPosition() {
+        return new Vector2(player.getPosition());
+    }
+
+    public void restorePlayerPosition(Vector2 position) {
+        if (position != null) {
+            player.setPosition(position.x, position.y);
+        }
+    }
+
+            private void handleInput(float delta){
+                if (Gdx.input.isKeyJustPressed(Input.Keys.I)) {
+                    isInventoryOpen = !isInventoryOpen;
+                }
+                if (!isInventoryOpen) {
+                    boolean moveUp = Gdx.input.isKeyPressed(Input.Keys.W);
+                    boolean moveDown = Gdx.input.isKeyPressed(Input.Keys.S);
+                    boolean moveLeft = Gdx.input.isKeyPressed(Input.Keys.A);
+                    boolean moveRight = Gdx.input.isKeyPressed(Input.Keys.D);
+                    player.update(delta, moveUp, moveDown, moveLeft, moveRight, collisionRectangles);
+                } else {
+                    Gdx.input.setInputProcessor(inventory.getStage());
+                }
+            }
 
     public void update(float delta) {
         screenTransition.update(delta);
@@ -306,6 +420,17 @@ public class GameScreen implements Screen {
             switchToCombat = false;
         }
 
+
+            @Override
+            public void resize (int width, int height) {
+                viewport.update(width, height);
+                uiStage.getViewport().update(width, height, true);
+                menuStage.getViewport().update(width, height, true);
+
+                float targetHealthBarHeight = healthBarFrameImage.getHeight();
+                playerHealthBar.setPosition(20, height - targetHealthBarHeight - 20);
+            }
+
         for (Chest chest : chests) {
             if (!chest.isOpened() && player.getBoundingBox().overlaps(new Rectangle(chest.getPosition().x, chest.getPosition().y, 32, 32))) {
                 chest.open();
@@ -319,6 +444,7 @@ public class GameScreen implements Screen {
         enemies.remove(defeatedEnemy);
         parent.setScreen(this);
     }
+
 
     public void returnToOverworldWithLoss() {
         System.out.println("Player Defeated - HANDLE DEFEAT LOGIC");
@@ -335,9 +461,30 @@ public class GameScreen implements Screen {
         uiStage.getViewport().update(width, height, true);
     }
 
+            @Override
+            public void dispose () {
+                map.dispose();
+                mapRenderer.dispose();
+                world.dispose();
+                stage.dispose();
+                player.dispose();
+                batch.dispose();
+                uiStage.dispose();
+                menuStage.dispose();
+                menuSkin.dispose();
+                skin.dispose();
+                healthBarRedTexture.dispose();
+                healthBarFrameTexture.dispose();
+                inventory.dispose();
+
+                for (Enemy enemy : enemies) {
+                    enemy.dispose();
+                }
+
     @Override
     public void pause() {
     }
+
 
     @Override
     public void resume() {

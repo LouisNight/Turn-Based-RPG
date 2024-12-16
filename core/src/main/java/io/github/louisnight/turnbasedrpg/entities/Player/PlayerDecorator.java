@@ -10,7 +10,7 @@ public abstract class PlayerDecorator extends Player {
     protected Player decoratedPlayer;  // Reference to the player being decorated
 
     public PlayerDecorator(Player decoratedPlayer) {
-        super(decoratedPlayer.getPosition().x, decoratedPlayer.getPosition().y);
+        super(decoratedPlayer.getPosition().x, decoratedPlayer.getPosition().y, decoratedPlayer.getName());
         this.decoratedPlayer = decoratedPlayer;
     }
 
