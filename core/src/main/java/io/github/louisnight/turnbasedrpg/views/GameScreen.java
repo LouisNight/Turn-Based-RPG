@@ -125,6 +125,9 @@ public class GameScreen implements Screen {
         coordinateLabel.setFontScale(1f); // Optionally adjust the font size
         uiStage.addActor(coordinateLabel); // Add it to the stage
 
+        inventory.addItem("Potion");
+        inventory.addItem("shield");
+
         // Set input processor
         Gdx.input.setInputProcessor(uiStage);
 
