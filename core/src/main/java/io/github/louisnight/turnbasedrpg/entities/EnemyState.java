@@ -4,5 +4,7 @@ public enum EnemyState {
     IDLE,
     ATTACKING,
     HURT,
-    DEAD
+    DEAD,
+    CHARGING,
+    LASER_FIRING
 }
