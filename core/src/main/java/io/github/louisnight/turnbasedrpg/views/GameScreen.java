@@ -152,7 +152,15 @@ public class GameScreen implements Screen {
 
     private void spawnEnemies() {
         enemies.add(EnemyFactory.createEnemy("orc", 1280, 659));
+        enemies.add(EnemyFactory.createEnemy("orc", 2279, 623));
+        enemies.add(EnemyFactory.createEnemy("orc", 715, 613));
+        enemies.add(EnemyFactory.createEnemy("orc", 3028, 1155));
+
+        enemies.add(EnemyFactory.createEnemy("heavyorc",2221, 875));
+        enemies.add(EnemyFactory.createEnemy("heavyorc", 1757, 776));
         enemies.add(EnemyFactory.createEnemy("heavyorc", 1300, 670));
+
+        enemies.add(EnemyFactory.createEnemy("dungeonboss", 1255, 1041));
     }
 
     public Vector2 getPlayerPosition() {
