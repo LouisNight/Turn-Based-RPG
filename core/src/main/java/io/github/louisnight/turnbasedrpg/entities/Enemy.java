@@ -172,36 +172,47 @@ public abstract class Enemy {
     public void update(float delta, ArrayList<Rectangle> collisionRectangles) {
         stateTime += delta;
 
+        // Handle non-DEAD states
         if (state != EnemyState.DEAD) {
-            // Update the direction change timer
-            changeDirectionTimer += delta;
-            if (changeDirectionTimer >= directionDuration) {
-                // Randomly pick a new direction
-                direction = new Vector2(MathUtils.random(-1, 1), MathUtils.random(-1, 1)).nor();
-                directionDuration = MathUtils.random(2f, 5f); // Set a new duration
-                changeDirectionTimer = 0f; // Reset the timer
+            if (state == EnemyState.ATTACKING) {
+                // Check if attack animation is finished
+                if (attackAnimation.isAnimationFinished(stateTime)) {
+                    System.out.println("Attack animation finished. Switching to IDLE.");
+                    setState(EnemyState.IDLE);
+                    stateTime = 0f;
+                }
             }
 
-            // Save current position for collision rollback
-            float prevX = position.x;
-            float prevY = position.y;
-
-            // Update position based on direction
-            position.x += direction.x * speed * delta;
-            position.y += direction.y * speed * delta;
-            updateBoundingBox();
-
-            // Handle collision
-            for (Rectangle obstacle : collisionRectangles) {
-                if (checkCollisionWith(obstacle)) {
-                    // Rollback position if collision occurs
-                    position.x = prevX;
-                    position.y = prevY;
-                    updateBoundingBox();
-
-                    // Change direction after collision
+            // Handle movement and collision for IDLE or other active states
+            if (state == EnemyState.IDLE) {
+                // Update direction
+                changeDirectionTimer += delta;
+                if (changeDirectionTimer >= directionDuration) {
                     direction = new Vector2(MathUtils.random(-1, 1), MathUtils.random(-1, 1)).nor();
-                    break;
+                    directionDuration = MathUtils.random(2f, 5f);
+                    changeDirectionTimer = 0f;
+                }
+
+                // Save current position for rollback
+                float prevX = position.x;
+                float prevY = position.y;
+
+                // Update position
+                position.x += direction.x * speed * delta;
+                position.y += direction.y * speed * delta;
+                updateBoundingBox();
+
+                // Handle collision
+                for (Rectangle obstacle : collisionRectangles) {
+                    if (checkCollisionWith(obstacle)) {
+                        position.x = prevX;
+                        position.y = prevY;
+                        updateBoundingBox();
+
+                        // Change direction after collision
+                        direction = new Vector2(MathUtils.random(-1, 1), MathUtils.random(-1, 1)).nor();
+                        break;
+                    }
                 }
             }
         }
@@ -212,7 +223,22 @@ public abstract class Enemy {
     public void render(SpriteBatch batch) {
         if (state == null) {
             System.out.println("Warning: Enemy state is null. Defaulting to IDLE.");
-            state = EnemyState.IDLE;
+            setState(EnemyState.IDLE);
+        }
+
+        // Update currentAnimation based on state
+        switch (state) {
+            case ATTACKING:
+                currentAnimation = attackAnimation;
+                break;
+            case IDLE:
+                currentAnimation = idleAnimation;
+                break;
+            case DEAD:
+                currentAnimation = deathAnimation;
+                break;
+            default:
+                currentAnimation = idleAnimation;
         }
 
         if (currentAnimation != null) {
@@ -222,6 +248,7 @@ public abstract class Enemy {
             System.out.println("No animation to render for state: " + state);
         }
     }
+
 
     // Resource cleanup
     public void dispose() {

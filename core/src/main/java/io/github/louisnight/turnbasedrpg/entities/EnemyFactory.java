@@ -8,6 +8,8 @@ public class EnemyFactory {
                 return new Orc(x, y);
             case "heavyorc":
                 return new HeavyOrc(x,y);
+            case "dungeonboss":
+                return new DungeonBoss(x,y);
             default:
                 throw new IllegalArgumentException("Unknown enemy type: " + type);
         }

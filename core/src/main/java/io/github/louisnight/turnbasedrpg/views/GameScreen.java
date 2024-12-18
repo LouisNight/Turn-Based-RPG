@@ -125,6 +125,9 @@ public class GameScreen implements Screen {
         coordinateLabel.setFontScale(1f); // Optionally adjust the font size
         uiStage.addActor(coordinateLabel); // Add it to the stage
 
+        inventory.addItem("Potion");
+        inventory.addItem("shield");
+
         // Set input processor
         Gdx.input.setInputProcessor(uiStage);
 
@@ -149,7 +152,15 @@ public class GameScreen implements Screen {
 
     private void spawnEnemies() {
         enemies.add(EnemyFactory.createEnemy("orc", 1280, 659));
+        enemies.add(EnemyFactory.createEnemy("orc", 2279, 623));
+        enemies.add(EnemyFactory.createEnemy("orc", 715, 613));
+        enemies.add(EnemyFactory.createEnemy("orc", 3028, 1155));
+
+        enemies.add(EnemyFactory.createEnemy("heavyorc",2221, 875));
+        enemies.add(EnemyFactory.createEnemy("heavyorc", 1757, 776));
         enemies.add(EnemyFactory.createEnemy("heavyorc", 1300, 670));
+
+        enemies.add(EnemyFactory.createEnemy("dungeonboss", 1255, 1041));
     }
 
     public Vector2 getPlayerPosition() {
@@ -184,6 +195,30 @@ public class GameScreen implements Screen {
 
         resetUIState();
     }
+
+    public void transitionToNewMap(String mapFilePath, Vector2 spawnPosition) {
+        System.out.println("Transitioning to new map: " + mapFilePath);
+
+        // Dispose of the current map and load the new one
+        if (map != null) {
+            map.dispose();
+        }
+        map = new TmxMapLoader().load(mapFilePath);
+        mapRenderer.setMap(map);
+
+        // Update collision rectangles for the new map
+        collisionRectangles.clear();
+        loadCollisionLayer();
+
+        // Place the player at the specified spawn position
+        player.setPosition(spawnPosition.x, spawnPosition.y);
+        camera.position.set(player.getPosition().x, player.getPosition().y, 0);
+        camera.update();
+
+        // Reset UI state
+        resetUIState();
+    }
+
 
     public void returnToOverworldWithLoss() {
         System.out.println("Player lost the combat. Returning to last save point.");
