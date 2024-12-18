@@ -54,7 +54,12 @@ public class TestRPG extends Game {
 
     // Change screen based on user action
     public void changeScreen(int screen) {
-        if (getScreen() != null) getScreen().hide(); // Hide the current screen
+        if (getScreen() != null) {
+            getScreen().hide();
+            if (getScreen() instanceof OptionsScreen) {
+                ((OptionsScreen) getScreen()).dispose(); // Dispose of OptionsScreen explicitly
+            }
+        } // Hide the current screen
 
         switch (screen) {
             case MENU:

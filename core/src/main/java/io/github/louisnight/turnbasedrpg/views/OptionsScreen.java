@@ -39,6 +39,7 @@ public class OptionsScreen implements Screen {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
+        System.out.println("Input Processor set to: " + stage);
         stage.clear();
         Skin skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
@@ -79,10 +80,14 @@ public class OptionsScreen implements Screen {
         backButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                // Set the parent back to the previous screen (ESC Menu in this case)
-                if (returnScreen != null) {
-                    parent.setScreen(returnScreen); // Navigate back to the ESC Screen
+                if (returnScreen instanceof EscMenuScreen) {
+                    EscMenuScreen escMenu = (EscMenuScreen) returnScreen;
+                    escMenu.closeOptionsMenu(); // Reset options menu state
                 }
+                Gdx.input.setInputProcessor(returnScreen instanceof EscMenuScreen
+                    ? ((EscMenuScreen) returnScreen).getStage()
+                    : null); // Set input processor to the returning screen
+                parent.setScreen(returnScreen);
             }
         });
 
@@ -165,9 +170,16 @@ public class OptionsScreen implements Screen {
 
     @Override
     public void hide() {
-
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); // Clear the screen
+        stage.clear();
+        Gdx.input.setInputProcessor(null);
+        System.out.println("OptionsScreen: Hiding and clearing stage");
     }
 
     @Override
-    public void dispose() { }
+    public void dispose() {
+        System.out.println("OptionsScreen: Disposing stage");
+        stage.dispose();
+    }
 }

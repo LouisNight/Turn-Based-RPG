@@ -19,6 +19,7 @@ public class EscMenuScreen implements Screen {
     private final Stage stage;
     private final Player player;
     private boolean visible = false;
+    private boolean optionsMenuOpen = false;
 
     public EscMenuScreen(TestRPG parent, Player player) {
         this.parent = parent;
@@ -97,6 +98,20 @@ public class EscMenuScreen implements Screen {
         });
     }
 
+    public boolean isOptionsMenuOpen() {
+        return optionsMenuOpen;
+    }
+
+    public void closeOptionsMenu() {
+        optionsMenuOpen = false; // Reset the state
+        Gdx.input.setInputProcessor(stage); // Restore ESC Menu input processor
+        System.out.println("EscMenuScreen: Options menu closed");
+
+        if (parent.getScreen() instanceof OptionsScreen) {
+            ((OptionsScreen) parent.getScreen()).dispose(); // Explicitly dispose of options screen resources
+        }
+    }
+
 
     public Stage getStage() {
         return stage;
@@ -119,6 +134,12 @@ public class EscMenuScreen implements Screen {
 
     @Override
     public void render(float delta) {
+
+        if (optionsMenuOpen) {
+            System.out.println("EscMenuScreen: Skipping render (options menu open)");
+            return;
+        }
+
         stage.act(delta);
         stage.draw();
     }

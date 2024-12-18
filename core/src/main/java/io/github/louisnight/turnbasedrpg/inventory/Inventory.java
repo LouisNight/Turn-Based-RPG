@@ -40,7 +40,15 @@ public class Inventory implements Screen {
     }
 
     private void updateInventoryUI() {
-        inventoryTable.clear();
+        inventoryTable.clear(); // Clear previous items
+        inventoryTable.top();   // Align table to start from the top
+
+        // Add title row
+        Label titleLabel = new Label("Inventory", skin);
+        titleLabel.setFontScale(1.5f); // Optionally increase the font size
+        inventoryTable.add(titleLabel).colspan(2).padBottom(20).center().row();
+
+        // Add items
         for (String item : items) {
             Texture texture = itemTextures.get(item);
             if (texture != null) {
@@ -55,8 +63,10 @@ public class Inventory implements Screen {
                 inventoryTable.add(row).fillX().expandX().pad(5).row();
             }
         }
-        inventoryTable.layout();
+
+        inventoryTable.layout(); // Refresh layout
     }
+
 
     public void addItem(String item) {
         items.add(item);
