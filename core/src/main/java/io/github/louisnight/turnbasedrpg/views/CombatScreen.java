@@ -241,6 +241,7 @@ public class CombatScreen implements Screen {
         Enemy attackingEnemy = enemies.get(0);
         if (attackingEnemy == null || attackingEnemy.getCurrentHealth() <= 0) {
             System.out.println("Enemy is invalid or defeated. Skipping turn.");
+
             isCombatOver = true;
             playerWon = true;
             endCombat(); // Transition to game world
@@ -259,7 +260,6 @@ public class CombatScreen implements Screen {
 
         float animationDuration = attackingEnemy.getAttackAnimation().getAnimationDuration();
         actionDelayTimer = Math.max(animationDuration + 0.3f, ACTION_DELAY);
-
         // Schedule damage application after animation starts
         Gdx.app.postRunnable(() -> {
             player.setHealth(player.getHealth() - 15);
@@ -286,9 +286,11 @@ public class CombatScreen implements Screen {
                 turnDelayTimer = 0f;
             }
         }, animationDuration);
+
     }
     private boolean isBossFight() {
         return !enemies.isEmpty() && enemies.get(0).getClass().getSimpleName().equals("DungeonBoss");
+
     }
 
     private TextureRegion getPlayerFrame() {
@@ -333,6 +335,7 @@ public class CombatScreen implements Screen {
 
     private void endCombat() {
         Vector2 lastPlayerPosition = parent.getGameScreen().getPlayerPosition(); // Get current player position
+
 
         // Check if the player is dead
         if (player.getHealth() <= 0) {

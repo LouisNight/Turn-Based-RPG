@@ -21,6 +21,7 @@ public class DungeonBoss extends Enemy {
         super(x, y, 500f); // Initialize with 500 health
         initializeStats();
         loadCombatAssets();
+
         laserStateTime = 0f;
         laserActive = false;
     }
@@ -34,6 +35,7 @@ public class DungeonBoss extends Enemy {
 
     @Override
     public void loadCombatAssets() {
+
         idleAnimation = createAnimation("../assets/Enemies/DungeonBoss/idle1.png", 100, 100, 0.2f, Animation.PlayMode.LOOP);
         attackAnimation = createAnimation("../assets/Enemies/DungeonBoss/realCharge1.png", 100, 100, 0.1f, Animation.PlayMode.NORMAL);
         laserAnimation = createAnimation("../assets/Enemies/DungeonBoss/realLaser1.png", 300, 100, 0.1f, Animation.PlayMode.NORMAL);
@@ -56,12 +58,13 @@ public class DungeonBoss extends Enemy {
         return new Animation<>(frameDuration, animationFrames, playMode);
     }
 
-
+  
     @Override
     public void update(float delta, ArrayList<Rectangle> collisionRectangles) {
         stateTime += delta;
 
         if (state == EnemyState.ATTACKING) {
+
             // Transition to laser phase after attack animation
             if (attackAnimation.isAnimationFinished(stateTime)) {
                 if (!laserActive) {
@@ -83,6 +86,7 @@ public class DungeonBoss extends Enemy {
         // Increment laser animation time if active
         if (laserActive) {
             laserStateTime += delta;
+
         }
 
         updateBoundingBox();
@@ -90,14 +94,13 @@ public class DungeonBoss extends Enemy {
 
 
 
-
     @Override
     public void render(SpriteBatch batch) {
-        // Render the boss animation
         TextureRegion currentFrame = getCurrentFrame();
         if (currentFrame != null) {
             batch.draw(currentFrame, position.x, position.y);
         }
+
 
         // Render the laser animation if active
         if (laserActive) {
@@ -109,8 +112,6 @@ public class DungeonBoss extends Enemy {
             }
         }
     }
-
-
 
     private TextureRegion getCurrentFrame() {
         switch (state) {
