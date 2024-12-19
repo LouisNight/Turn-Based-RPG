@@ -91,10 +91,6 @@ public class GameScreen implements Screen {
         enemies = new ArrayList<>();
         spawnEnemies();
 
-        // Initialize map
-        map = new TmxMapLoader().load("Maps/Dungeon1Map.tmx");
-        mapRenderer = new OrthogonalTiledMapRenderer(map);
-
         // Initialize world
         world = new World(new Vector2(0, 0), true);
 
