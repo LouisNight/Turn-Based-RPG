@@ -218,8 +218,6 @@ public class CombatScreen implements Screen {
             targetEnemy.setState(EnemyState.DEAD);
             actionDelayTimer = 0f;
             System.out.println("Enemy defeated!");
-            isGameOver = true;
-            playerWon = true;
         }
 
         playerTurn = false;
@@ -243,7 +241,10 @@ public class CombatScreen implements Screen {
         Enemy attackingEnemy = enemies.get(0);
         if (attackingEnemy == null || attackingEnemy.getCurrentHealth() <= 0) {
             System.out.println("Enemy is invalid or defeated. Skipping turn.");
-            playerTurn = true;
+
+            isCombatOver = true;
+            playerWon = true;
+            endCombat(); // Transition to game world
             return;
         }
 
@@ -259,7 +260,6 @@ public class CombatScreen implements Screen {
 
         float animationDuration = attackingEnemy.getAttackAnimation().getAnimationDuration();
         actionDelayTimer = Math.max(animationDuration + 0.3f, ACTION_DELAY);
-
         // Schedule damage application after animation starts
         Gdx.app.postRunnable(() -> {
             player.setHealth(player.getHealth() - 15);
@@ -286,8 +286,12 @@ public class CombatScreen implements Screen {
                 turnDelayTimer = 0f;
             }
         }, animationDuration);
-    }
 
+    }
+    private boolean isBossFight() {
+        return !enemies.isEmpty() && enemies.get(0).getClass().getSimpleName().equals("DungeonBoss");
+
+    }
 
     private TextureRegion getPlayerFrame() {
         switch (player.getState()) {
@@ -315,21 +319,12 @@ public class CombatScreen implements Screen {
     private TextureRegion getEnemyFrame(Enemy enemy) {
         switch (enemy.getState()) {
             case ATTACKING:
-
-                if (enemy.getAttackAnimation().isAnimationFinished(enemyStateTime)) {
-                    System.out.println("Enemy attack animation finished. Switching to IDLE.");
-                    enemy.setState(EnemyState.IDLE);
-                    enemyStateTime = 0f;
-                }
                 return enemy.getAttackAnimation().getKeyFrame(enemyStateTime, false);
 
             case IDLE:
                 return enemy.getIdleAnimation().getKeyFrame(enemyStateTime, true);
 
             case DEAD:
-                if (enemy.getDeathAnimation().isAnimationFinished(enemyStateTime)) {
-                    removeDefeatedEnemy(enemy);
-                }
                 return enemy.getDeathAnimation().getKeyFrame(enemyStateTime, false);
 
             default:
@@ -338,40 +333,46 @@ public class CombatScreen implements Screen {
     }
 
 
-
-
-
-    private void removeDefeatedEnemy(Enemy enemy) {
-        int index = enemies.indexOf(enemy);
-        if (index >= 0) { // Ensure the index is valid
-            System.out.println("Removing defeated enemy...");
-            enemies.remove(index);
-            if (index < enemyHealthBars.size()) {
-                HealthBar healthBar = enemyHealthBars.get(index);
-                healthBar.removeFromStage(); // Remove the health bar from the stage
-                enemyHealthBars.remove(index); // Remove the health bar from the list
-            }
-            if (enemies.isEmpty()) {
-                isCombatOver = true;
-                playerWon = true;
-                endCombat();
-            }
-        }
-    }
-
     private void endCombat() {
-        Vector2 lastPlayerPosition = parent.getGameScreen().getPlayerPosition(); // Get current player position before leaving GameScreen
+        Vector2 lastPlayerPosition = parent.getGameScreen().getPlayerPosition(); // Get current player position
+
+
+        // Check if the player is dead
+        if (player.getHealth() <= 0) {
+            System.out.println("Player's health is zero. Triggering loss scenario.");
+            isCombatOver = true;
+            playerWon = false;
+        }
+
         if (isCombatOver) {
             if (playerWon) {
                 System.out.println("Player won the combat!");
-                parent.getGameScreen().restorePlayerPosition(lastPlayerPosition);
-                parent.getGameScreen().returnToOverworldWithWin();
+                Timer.schedule(new Timer.Task() {
+                    @Override
+                    public void run() {
+                        parent.getGameScreen().restorePlayerPosition(lastPlayerPosition);
+                        parent.getGameScreen().returnToOverworldWithWin();
+                    }
+                }, 1f); // Delay for 1 second to allow any final animations or effects
             } else {
                 System.out.println("Player lost the combat!");
-                parent.getGameScreen().returnToOverworldWithLoss();
+                Timer.schedule(new Timer.Task() {
+                    @Override
+                    public void run() {
+                        if (isBossFight()) {
+                            System.out.println("Player lost to the boss. Transitioning to a new map.");
+                            parent.getGameScreen().transitionToNewMap("../assets/Maps/OverworldMap.tmx", new Vector2(400, 650)); // Replace with actual map path and spawn point
+                        } else {
+                            parent.getGameScreen().returnToOverworldWithLoss();
+                        }
+                    }
+                }, 1f);
             }
         }
     }
+
+
+
 
     @Override
     public void pause() {

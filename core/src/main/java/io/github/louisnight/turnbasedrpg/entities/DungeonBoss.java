@@ -21,7 +21,7 @@ public class DungeonBoss extends Enemy {
         super(x, y, 500f); // Initialize with 500 health
         initializeStats();
         loadCombatAssets();
-        laserOffset = new Vector2(100, 20); // Offset for laser rendering
+
         laserStateTime = 0f;
         laserActive = false;
     }
@@ -35,9 +35,11 @@ public class DungeonBoss extends Enemy {
 
     @Override
     public void loadCombatAssets() {
-        idleAnimation = createAnimation("../assets/Enemies/DungeonBoss/idle.png", 100, 100, 0.2f, Animation.PlayMode.LOOP);
-        attackAnimation = createAnimation("../assets/Enemies/DungeonBoss/armRaiseLaser.png", 100, 100, 0.1f, Animation.PlayMode.NORMAL);
-        laserAnimation = createAnimation("../assets/Enemies/DungeonBoss/laser.png", 300, 100, 0.1f, Animation.PlayMode.NORMAL);
+
+        idleAnimation = createAnimation("../assets/Enemies/DungeonBoss/idle1.png", 100, 100, 0.2f, Animation.PlayMode.LOOP);
+        attackAnimation = createAnimation("../assets/Enemies/DungeonBoss/realCharge1.png", 100, 100, 0.1f, Animation.PlayMode.NORMAL);
+        laserAnimation = createAnimation("../assets/Enemies/DungeonBoss/realLaser1.png", 300, 100, 0.1f, Animation.PlayMode.NORMAL);
+
     }
 
     private Animation<TextureRegion> createAnimation(String filePath, int frameWidth, int frameHeight, float frameDuration, Animation.PlayMode playMode) {
@@ -56,42 +58,41 @@ public class DungeonBoss extends Enemy {
         return new Animation<>(frameDuration, animationFrames, playMode);
     }
 
+  
     @Override
     public void update(float delta, ArrayList<Rectangle> collisionRectangles) {
         stateTime += delta;
 
         if (state == EnemyState.ATTACKING) {
-            System.out.println("Boss is ATTACKING. State time: " + stateTime);
 
-            if (attackAnimation != null && attackAnimation.isAnimationFinished(stateTime)) {
+            // Transition to laser phase after attack animation
+            if (attackAnimation.isAnimationFinished(stateTime)) {
                 if (!laserActive) {
-                    System.out.println("Arm Raise animation finished. Activating laser.");
+                    System.out.println("Charge-up animation finished. Activating laser.");
                     laserActive = true;
-                    laserStateTime = 0f; // Reset laser animation
+                    laserStateTime = 0f;
                 }
             }
 
-            if (laserActive && laserAnimation != null && laserAnimation.isAnimationFinished(laserStateTime)) {
+            // End laser phase and return to IDLE
+            if (laserActive && laserAnimation.isAnimationFinished(laserStateTime)) {
                 System.out.println("Laser animation finished. Returning to IDLE.");
                 laserActive = false;
-                state = EnemyState.IDLE; // Transition to IDLE
-                stateTime = 0f; // Reset state time
-            }
-        } else if (state == EnemyState.IDLE) {
-            if (currentAnimation != idleAnimation) {
-                System.out.println("Switching to idle animation.");
-                currentAnimation = idleAnimation;
+                setState(EnemyState.IDLE);
+                stateTime = 0f;
             }
         }
 
-        // Update laser timer if active
+        // Increment laser animation time if active
         if (laserActive) {
             laserStateTime += delta;
-            System.out.println("Laser animation progress: " + laserStateTime);
+
         }
 
         updateBoundingBox();
     }
+
+
 
     @Override
     public void render(SpriteBatch batch) {
@@ -100,10 +101,15 @@ public class DungeonBoss extends Enemy {
             batch.draw(currentFrame, position.x, position.y);
         }
 
-        // Draw the laser animation if active
+
+        // Render the laser animation if active
         if (laserActive) {
             TextureRegion laserFrame = laserAnimation.getKeyFrame(laserStateTime, false);
-            batch.draw(laserFrame, position.x + laserOffset.x, position.y + laserOffset.y);
+            if (laserFrame != null) {
+                float laserX = position.x; // Adjust as necessary
+                float laserY = position.y + 50; // Example offset
+                batch.draw(laserFrame, laserX, laserY);
+            }
         }
     }
 
