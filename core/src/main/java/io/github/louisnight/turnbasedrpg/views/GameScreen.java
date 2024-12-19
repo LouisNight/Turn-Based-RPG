@@ -88,7 +88,7 @@ public class GameScreen implements Screen {
         enemies = new ArrayList<>();
         spawnEnemies();
 
-        player = new ImplementPlayer(400, 650);
+        player = new ImplementPlayer(401, 650);
 
         player.setMaxHealth(100);
         player.setHealth(100);
