@@ -125,9 +125,6 @@ public class DungeonScreen implements Screen {
         coordinateLabel.setFontScale(1f); // Optionally adjust the font size
         uiStage.addActor(coordinateLabel); // Add it to the stage
 
-        inventory.addItem("Potion");
-        inventory.addItem("shield");
-
         // Set input processor
         Gdx.input.setInputProcessor(uiStage);
 
@@ -407,9 +404,13 @@ public class DungeonScreen implements Screen {
 
             // Show player coordinates when debug mode is on
             Vector2 playerPos = player.getPosition();
-            coordinateLabel.setText("Player: (" + (int) playerPos.x + ", " + (int) playerPos.y + ")");
+            int gridX = (int) (playerPos.x / 16);
+            int gridY = (int) (playerPos.y / 16);
+
+            coordinateLabel.setText("Player: (" + gridX + ", " + gridY + ")");
             coordinateLabel.setPosition(10, uiStage.getViewport().getWorldHeight() - 55);
             coordinateLabel.setVisible(true);
+
         } else {
             // Hide coordinates when debug mode is off
             coordinateLabel.setVisible(false);

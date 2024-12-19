@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Inventory implements Screen {
-    private Array<String> items; // Items represented as strings (item IDs or names)
+    private Map<String, Integer> items; // Map to store items and their counts
     private Map<String, Texture> itemTextures; // Map item names to textures
     private Skin skin;
     private Stage stage;
@@ -25,7 +25,7 @@ public class Inventory implements Screen {
     private int selectedItemIndex = 1; // Index to track the selected item
 
     public Inventory(Skin skin, Stage stage) {
-        this.items = new Array<>();
+        this.items = new HashMap<>();
         this.itemTextures = new HashMap<>();
         this.skin = skin;
         this.stage = stage;
@@ -63,17 +63,21 @@ public class Inventory implements Screen {
         // Load textures for your items; make sure these paths are correct
         itemTextures.put("potion", new Texture(Gdx.files.internal("Items/health_potion.png")));
         itemTextures.put("shield", new Texture(Gdx.files.internal("Items/wood_shield.png")));
+        itemTextures.put("sword", new Texture(Gdx.files.internal("Items/wood_sword.png")));
+        itemTextures.put("key", new Texture(Gdx.files.internal("Items/key.png")));
         // Add more items as needed
     }
 
     public void addItem(String item) {
-        items.add(item);
+        items.put(item, items.getOrDefault(item, 0) + 1);
         updateInventoryUI();
         System.out.println("Added item to inventory: " + item);
     }
 
     public void addItems(Array<String> newItems) {
-        items.addAll(newItems);
+        for (String item : newItems) {
+            items.put(item, items.getOrDefault(item, 0) + 1);
+        }
         updateInventoryUI();
         System.out.println("Added multiple items to inventory.");
     }
@@ -82,20 +86,27 @@ public class Inventory implements Screen {
         // Clear existing UI elements
         inventoryTable.clear();
 
+        // Convert the keys to an indexed array for consistency
+        Array<String> itemKeys = new Array<>(items.keySet().toArray(new String[0]));
+
         // Render each item in the inventory
-        for (int i = 0; i < items.size; i++) {
-            String item = items.get(i);
+        for (int i = 0; i < itemKeys.size; i++) {
+            String item = itemKeys.get(i);
+            int count = items.get(item);
             Texture texture = itemTextures.get(item);
+
             if (texture != null) {
                 // Create UI elements for the item
                 Image itemImage = new Image(texture);
                 itemImage.setSize(50, 50);
-                Label itemNameLabel = new Label(item, skin);
+
+                // Display item name and count (e.g., "potion x2")
+                Label itemNameLabel = new Label(item + " x" + count, skin);
 
                 // Add elements to a new row
                 Table rowTable = new Table();
-                rowTable.add(itemImage).pad(10);   // Add item icon
-                rowTable.add(itemNameLabel).pad(10); // Add item name
+                rowTable.add(itemImage).pad(10);       // Add item icon
+                rowTable.add(itemNameLabel).pad(10);  // Add item name with count
 
                 // Highlight selected item
                 if (i == selectedItemIndex) {
@@ -107,6 +118,7 @@ public class Inventory implements Screen {
             }
         }
     }
+
 
     // Toggle the visibility of the inventory UI
     public void toggleVisibility() {
@@ -144,22 +156,28 @@ public class Inventory implements Screen {
 
 
     public void handleInput() {
-        if (items.size > 0) {
+        if (!items.isEmpty()) {
+            // Convert the keys of the map (Set<String>) to an Array for indexed access
+            Array<String> itemKeys = new Array<>(items.keySet().toArray(new String[0]));
+
             if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.W)) {
-                // Scroll up, but prevent selection from going below index 1 (first item)
-                if (selectedItemIndex > 1) {
+                // Scroll up but stop at the first item
+                if (selectedItemIndex > 0) {
                     selectedItemIndex--; // Move selection up
+                    updateInventoryUI();
                 }
-                updateInventoryUI(); // Update UI after selection change
             } else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.S)) {
-                // Scroll down, but prevent selection from going beyond the last item
-                if (selectedItemIndex < items.size - 1) {
+                // Scroll down but stop at the last item
+                if (selectedItemIndex < itemKeys.size - 1) {
                     selectedItemIndex++; // Move selection down
+                    updateInventoryUI();
                 }
-                updateInventoryUI(); // Update UI after selection change
             }
         }
     }
+
+
+
 
 
 
