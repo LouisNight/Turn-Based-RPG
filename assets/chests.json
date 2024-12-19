@@ -2,14 +2,49 @@
   "areas": {
     "Dungeon1": [
       {
-        "x": 2016,
-        "y": 192,
+        "x": 2544,
+        "y": 416,
+        "items": ["shield"]
+      },
+      {
+        "x": 3056,
+        "y": 896,
         "items": ["potion"]
       },
       {
-        "x": 1920,
-        "y": 192,
-        "items": ["shield"]
+        "x": 3056,
+        "y": 1152,
+        "items": ["potion"]
+      },
+      {
+        "x": 2800,
+        "y": 1360,
+        "items": ["potion"]
+      },
+      {
+        "x": 2544,
+        "y": 1360,
+        "items": ["potion"]
+      },
+      {
+        "x": 1584,
+        "y": 944,
+        "items": ["potion"]
+      },
+      {
+        "x": 1584,
+        "y": 576,
+        "items": ["potion"]
+      },
+      {
+        "x": 720,
+        "y": 608,
+        "items": ["potion"]
+      },
+      {
+        "x": 1344,
+        "y": 448,
+        "items": ["key"]
       }
     ],
     "Overworld": [

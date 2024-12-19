@@ -27,6 +27,12 @@ public class ItemFactory {
                     new Texture("Items/wood_shield.png"),
                     5.0f
                 );
+            case "key":
+                return new Key(
+                        "Key",
+                        "A key to unlock a door in a dungeon",
+                        new Texture("Items/key.png")
+                );
             default:
                 throw new IllegalArgumentException("Unknown item: " + itemName);
         }

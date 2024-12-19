@@ -72,7 +72,7 @@ public abstract class Player {
         currentAnimation = walkDownAnimation;
 
         position = new Vector2(x, y);
-        speed = 100f;
+        speed = 250f;
         stateTime = 0f;
 
         boundingBox = new Rectangle(position.x, position.y, CHARACTER_WIDTH, CHARACTER_HEIGHT);
