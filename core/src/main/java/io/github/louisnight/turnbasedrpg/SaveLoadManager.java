@@ -22,7 +22,6 @@ public class SaveLoadManager {
         return instance;
     }
 
-    // Method to save game state
     public void saveGame(Player player) {
         preferences.putString("playerName", player.getName());
         preferences.putFloat("playerX", player.getPosition().x);
@@ -33,7 +32,6 @@ public class SaveLoadManager {
         System.out.println("Game saved successfully.");
     }
 
-    // Method to load game state
     public void loadGame(Player player) {
         if (preferences.contains("playerName")) {
             player.setPosition(preferences.getFloat("playerX"), preferences.getFloat("playerY"));

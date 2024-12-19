@@ -52,8 +52,8 @@ public class CombatScreen implements Screen {
     private TextButton defendButton;
     private boolean isCombatOver;
 
-    private final float PLAYER_SCALE = 1.5f;
-    private final float ENEMY_SCALE = 1.5f;
+    private final float PLAYER_SCALE = 3f;
+    private final float ENEMY_SCALE = 3f;
 
     private TestRPG parent;
 
@@ -154,25 +154,25 @@ public class CombatScreen implements Screen {
         batch.begin();
         batch.draw(combatBackground, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-        float playerX = 100; // Adjust for positioning
+        float playerX = 100;
         float playerY = 150;
         TextureRegion playerFrame = getPlayerFrame();
         batch.draw(
             playerFrame,
             playerX, playerY,
-            playerFrame.getRegionWidth() * PLAYER_SCALE,  // Scaled width
-            playerFrame.getRegionHeight() * PLAYER_SCALE // Scaled height
+            playerFrame.getRegionWidth() * PLAYER_SCALE,
+            playerFrame.getRegionHeight() * PLAYER_SCALE
         );
 
         if (!enemies.isEmpty()) {
-            float enemyX = Gdx.graphics.getWidth() - 300; // Adjust for positioning
+            float enemyX = Gdx.graphics.getWidth() - 300;
             float enemyY = 150;
             TextureRegion enemyFrame = getEnemyFrame(enemies.get(0));
             batch.draw(
                 enemyFrame,
                 enemyX, enemyY,
-                enemyFrame.getRegionWidth() * ENEMY_SCALE,  // Scaled width
-                enemyFrame.getRegionHeight() * ENEMY_SCALE // Scaled height
+                enemyFrame.getRegionWidth() * ENEMY_SCALE,
+                enemyFrame.getRegionHeight() * ENEMY_SCALE
             );
         }
 
@@ -227,7 +227,7 @@ public class CombatScreen implements Screen {
     private void playerDefend() {
         System.out.println("Player defends!");
         turnDelayTimer = 0f;
-        playerTurn = false; // End player's turn
+        playerTurn = false;
     }
 
     private void enemyTurn() {
@@ -244,7 +244,7 @@ public class CombatScreen implements Screen {
 
             isCombatOver = true;
             playerWon = true;
-            endCombat(); // Transition to game world
+            endCombat();
             return;
         }
 
@@ -255,19 +255,19 @@ public class CombatScreen implements Screen {
 
     private void enemyAttack(Enemy attackingEnemy) {
         System.out.println("Enemy attacks!");
-        attackingEnemy.setState(EnemyState.ATTACKING); // Set state to ATTACKING
-        enemyStateTime = 0f; // Reset state time for the animation
+        attackingEnemy.setState(EnemyState.ATTACKING);
+        enemyStateTime = 0f;
 
         float animationDuration = attackingEnemy.getAttackAnimation().getAnimationDuration();
         actionDelayTimer = Math.max(animationDuration + 0.3f, ACTION_DELAY);
-        // Schedule damage application after animation starts
+
         Gdx.app.postRunnable(() -> {
             player.setHealth(player.getHealth() - 15);
             player.setState(PlayerState.HURT);
 
             System.out.println("Player health after attack: " + player.getHealth());
 
-            // Check if the player is defeated
+
             if (player.getHealth() <= 0) {
                 System.out.println("Player defeated!");
                 player.setState(PlayerState.DEAD);
@@ -276,7 +276,7 @@ public class CombatScreen implements Screen {
             }
         });
 
-        // Schedule transition to IDLE after the animation completes
+
         Timer.schedule(new Timer.Task() {
             @Override
             public void run() {
@@ -353,7 +353,7 @@ public class CombatScreen implements Screen {
                         parent.getGameScreen().restorePlayerPosition(lastPlayerPosition);
                         parent.getGameScreen().returnToOverworldWithWin();
                     }
-                }, 1f); // Delay for 1 second to allow any final animations or effects
+                }, 1f);
             } else {
                 System.out.println("Player lost the combat!");
                 Timer.schedule(new Timer.Task() {
@@ -393,16 +393,14 @@ public class CombatScreen implements Screen {
     public void resize(int width, int height) {
 
         stage.getViewport().update(width, height, true);
-        // Reposition health bars to fixed positions on the screen
+
         playerHealthBar.setPosition(50, height - playerHealthBar.getHeight() - 50);
         for (HealthBar enemyHealthBar : enemyHealthBars) {
             enemyHealthBar.setPosition(width - enemyHealthBar.getWidth() - 100, height - enemyHealthBar.getHeight() - 50);
         }
 
-        // Lock player and enemy positions to the screen
-        // Ensure their coordinates are based on a fixed reference rather than adjusting dynamically with the viewport
-        player.setPosition(100, 150);  // Fixed position for player
-        enemies.get(0).setPosition(width - 300, 150);  // Fixed position for enemy
+        player.setPosition(100, 150);
+        enemies.get(0).setPosition(width - 300, 150);
     }
 
     @Override

@@ -27,7 +27,6 @@ import io.github.louisnight.turnbasedrpg.TestRPG;
 import io.github.louisnight.turnbasedrpg.entities.Chest;
 import io.github.louisnight.turnbasedrpg.entities.ChestManager;
 import io.github.louisnight.turnbasedrpg.entities.Enemy;
-import io.github.louisnight.turnbasedrpg.entities.EnemyFactory;
 import io.github.louisnight.turnbasedrpg.entities.Player.ImplementPlayer;
 import io.github.louisnight.turnbasedrpg.entities.Player.Player;
 import io.github.louisnight.turnbasedrpg.inventory.Inventory;
@@ -151,7 +150,7 @@ public class OverworldScreen implements Screen {
     }
 
     private ArrayList<Rectangle> getCollisionRectangles() {
-        return collisionRectangles; // Assume `collisionRectangles` is already populated
+        return collisionRectangles;
     }
 
     private void spawnEnemies() {
@@ -177,7 +176,7 @@ public class OverworldScreen implements Screen {
         if (lastEnemyPosition != null) {
             for (Enemy enemy : enemies) {
                 if (enemy.getPosition().epsilonEquals(lastEnemyPosition)) {
-                    enemies.remove(enemy); // Remove the defeated enemy
+                    enemies.remove(enemy);
                     break;
                 }
             }
@@ -193,23 +192,19 @@ public class OverworldScreen implements Screen {
     public void transitionToNewMap(String mapFilePath, Vector2 spawnPosition) {
         System.out.println("Transitioning to new map: " + mapFilePath);
 
-        // Dispose of the current map and load the new one
         if (map != null) {
             map.dispose();
         }
         map = new TmxMapLoader().load(mapFilePath);
         mapRenderer.setMap(map);
 
-        // Update collision rectangles for the new map
         collisionRectangles.clear();
         loadCollisionLayer();
 
-        // Place the player at the specified spawn position
         player.setPosition(spawnPosition.x, spawnPosition.y);
         camera.position.set(player.getPosition().x, player.getPosition().y, 0);
         camera.update();
 
-        // Reset UI state
         resetUIState();
     }
 
@@ -217,7 +212,6 @@ public class OverworldScreen implements Screen {
     public void returnToOverworldWithLoss() {
         System.out.println("Player lost the combat. Returning to last save point.");
 
-        // Restore player position
         if (lastPlayerPosition != null) {
             player.setPosition(lastPlayerPosition.x, lastPlayerPosition.y);
         }
@@ -229,19 +223,19 @@ public class OverworldScreen implements Screen {
     }
 
     private void resetUIState() {
-        isEscMenuOpen = false; // Ensure ESC menu is not open
-        isInventoryOpen = false; // Ensure inventory is not open
-        Gdx.input.setInputProcessor(uiStage); // Reset input processor to the game UI
+        isEscMenuOpen = false;
+        isInventoryOpen = false;
+        Gdx.input.setInputProcessor(uiStage);
         parent.setScreen(this);
     }
 
     public void toggleEscMenu() {
         if (isEscMenuOpen) {
             isEscMenuOpen = false;
-            Gdx.input.setInputProcessor(uiStage); // Return control to the game UI stage
+            Gdx.input.setInputProcessor(uiStage);
         } else {
             isEscMenuOpen = true;
-            Gdx.input.setInputProcessor(escMenuStage); // Set control to the ESC menu stage
+            Gdx.input.setInputProcessor(escMenuStage);
         }
     }
 
@@ -267,7 +261,7 @@ public class OverworldScreen implements Screen {
             if (player.getBoundingBox().overlaps(enemy.getBoundingBox())) {
                 System.out.println("Combat triggered with enemy!");
                 transitionToCombatScreen(enemy);
-                break; // Only handle one enemy at a time
+                break;
             }
         }
     }
@@ -286,26 +280,24 @@ public class OverworldScreen implements Screen {
         // Toggle ESC menu
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             isEscMenuOpen = !isEscMenuOpen;
-            isInventoryOpen = false; // Close inventory if ESC menu is opened
+            isInventoryOpen = false;
             Gdx.input.setInputProcessor(isEscMenuOpen ? escMenuScreen.getStage() : uiStage);
             System.out.println("Input Processor Set to: " + (isEscMenuOpen ? "ESC Menu Stage" : "UI Stage"));
             return; // Exit early to avoid other inputs being processed
         }
 
-        // Toggle inventory
         if (Gdx.input.isKeyJustPressed(Input.Keys.I) && !isEscMenuOpen) {
             isInventoryOpen = !isInventoryOpen;
             if (isInventoryOpen) {
-                inventory.show(); // Show the inventory
-                Gdx.input.setInputProcessor(inventory.getStage()); // Set input processor to the inventory stage
+                inventory.show();
+                Gdx.input.setInputProcessor(inventory.getStage());
             } else {
-                inventory.hide(); // Hide the inventory
-                Gdx.input.setInputProcessor(uiStage); // Return to the main UI stage
+                inventory.hide();
+                Gdx.input.setInputProcessor(uiStage);
             }
             return;
         }
 
-        // Handle player movement only if no UI is open
         if (!isInventoryOpen && !isEscMenuOpen) {
             boolean moveUp = Gdx.input.isKeyPressed(Input.Keys.W);
             boolean moveDown = Gdx.input.isKeyPressed(Input.Keys.S);
@@ -321,69 +313,56 @@ public class OverworldScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        // If the ESC menu is open, render it and handle input for ESC menu
         if (isEscMenuOpen) {
             escMenuStage.act(delta);
             escMenuStage.draw();
         } else {
-            // Handle player movement and other input if ESC menu is not open
             handleInput(delta);
 
-            // If the inventory is open, handle cycling through items
             if (isInventoryOpen) {
-                inventory.handleInput();  // This will cycle through the inventory items
+                inventory.handleInput();
             }
 
-            // Update camera position based on player position
             camera.position.set(player.getPosition().x, player.getPosition().y, 0);
             camera.update();
 
             uiStage.getViewport().apply();
             playerHealthBar.update(player.getHealth(), player.getMaxHealth());
 
-            // Clear the screen
             Gdx.gl.glClearColor(0, 0, 0, 1);
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-            // Set the camera and render the map
             batch.setProjectionMatrix(camera.combined);
             mapRenderer.setView(camera);
             mapRenderer.render();
 
-            // Render game objects like chests, enemies, and player
             batch.begin();
 
-            // If inventory is open, render the overlay first
             if (isInventoryOpen) {
-                inventory.renderOverlay(batch, camera); // Ensure this renders the inventory backdrop
+                inventory.renderOverlay(batch, camera);
                 new Texture(Gdx.files.internal("UI/inv_backdrop.png"));
             }
 
-            // Render chests
             for (Chest chest : chests) {
                 chest.render(batch);
             }
 
-            // Render the player
             player.render(batch);
 
-            // Render enemies
             for (Enemy enemy : enemies) {
                 enemy.update(delta, collisionRectangles);
                 enemy.render(batch);
             }
             batch.end();
 
-            // Check for combat triggers (if player encounters enemies)
             checkCombatTriggers();
         }
 
-        // Toggle debug mode on and off
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
             debugMode = !debugMode;
         }
 
-        // If debug mode is on, render debugging info like bounding boxes
         if (debugMode) {
             ShapeRenderer shapeRenderer = new ShapeRenderer();
             shapeRenderer.setProjectionMatrix(camera.combined);
@@ -391,45 +370,38 @@ public class OverworldScreen implements Screen {
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
             shapeRenderer.setColor(Color.RED);
 
-            // Render player bounding box in red
             Rectangle playerBoundingBox = player.getBoundingBox();
             shapeRenderer.rect(playerBoundingBox.x, playerBoundingBox.y, playerBoundingBox.width, playerBoundingBox.height);
 
-            // Render collision rectangles
             for (Rectangle rect : collisionRectangles) {
                 shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
             }
 
             shapeRenderer.setColor(Color.BLUE);
 
-            // Render enemy bounding boxes in blue
             for (Enemy enemy : enemies) {
                 Rectangle enemyBoundingBox = enemy.getBoundingBox();
                 shapeRenderer.rect(enemyBoundingBox.x, enemyBoundingBox.y, enemyBoundingBox.width, enemyBoundingBox.height);
             }
             shapeRenderer.end();
 
-            // Show player coordinates when debug mode is on
             Vector2 playerPos = player.getPosition();
             coordinateLabel.setText("Player: (" + (int) playerPos.x + ", " + (int) playerPos.y + ")");
             coordinateLabel.setPosition(10, uiStage.getViewport().getWorldHeight() - 55);
             coordinateLabel.setVisible(true);
         } else {
-            // Hide coordinates when debug mode is off
             coordinateLabel.setVisible(false);
         }
 
-        // Handle additional UI rendering (ESC menu or inventory screen)
         if (isEscMenuOpen) {
-            escMenuScreen.render(delta);  // Render the ESC menu if it's open
+            escMenuScreen.render(delta);
         } else if (isInventoryOpen) {
-            inventory.render(delta);  // Render the inventory UI if it's open
+            inventory.render(delta);
         } else {
             uiStage.act(delta);
-            uiStage.draw();  // Draw the main UI stage when neither ESC menu nor inventory is open
+            uiStage.draw();
         }
 
-        // Step the physics world
         world.step(1 / 60f, 6, 2);
         update(delta);
     }
@@ -443,10 +415,10 @@ public class OverworldScreen implements Screen {
                 System.out.println("Opened chest and added items: " + chest.getItems());
             }
         }
-        // Check if player collides with invisible zone
+
         if (player.getBoundingBox().overlaps(screenTransitionTrigger)) {
-            // Transition to the new screen (for example, a new map or area)
-            parent.setScreen(new DungeonScreen(parent)); // Example
+
+            parent.setScreen(new DungeonScreen(parent));
         }
 
     }

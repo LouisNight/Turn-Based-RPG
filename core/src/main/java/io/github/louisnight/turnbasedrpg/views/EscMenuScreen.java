@@ -27,23 +27,20 @@ public class EscMenuScreen implements Screen {
         this.stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
-        // Set up skin for buttons
+
         Skin skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
-        // Set up table layout for buttons
         Table table = new Table();
         table.setFillParent(true);
         table.setVisible(true);
         stage.addActor(table);
 
-        // Create buttons
         TextButton resumeButton = new TextButton("Resume Game", skin);
         TextButton saveButton = new TextButton("Save Game", skin);
         TextButton loadButton = new TextButton("Load Game", skin);
         TextButton optionsButton = new TextButton("Options", skin);
         TextButton quitButton = new TextButton("Quit to Main Menu", skin);
 
-        // Add buttons to the table with padding
         table.add(resumeButton).fillX().uniformX();
         table.row().pad(10, 0, 10, 0);
         table.add(saveButton).fillX().uniformX();
@@ -56,7 +53,6 @@ public class EscMenuScreen implements Screen {
 
         table.layout();
 
-        // Resume button listener
         resumeButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -65,7 +61,6 @@ public class EscMenuScreen implements Screen {
             }
         });
 
-        // Save button listener
         saveButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -73,7 +68,6 @@ public class EscMenuScreen implements Screen {
             }
         });
 
-        // Load button listener
         loadButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -81,7 +75,6 @@ public class EscMenuScreen implements Screen {
             }
         });
 
-        // Options button listener
         optionsButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -89,7 +82,6 @@ public class EscMenuScreen implements Screen {
             }
         });
 
-        // Quit button listener
         quitButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {

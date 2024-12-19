@@ -21,7 +21,7 @@ public class Orc extends Enemy {
 
         texture = new Texture("../assets/Enemies/orc1_walk_full.png");
 
-        float spriteWidth = 64f; // Assuming each frame is 64x64
+        float spriteWidth = 64f;
         float spriteHeight = 64f;
         boundingBox.setSize(spriteWidth * 0.6f, spriteHeight * 0.6f); // Adjust proportionally
 
@@ -43,7 +43,7 @@ public class Orc extends Enemy {
         initializeStats();
         state = EnemyState.IDLE;
 
-        loadCombatAssets(); // Ensure combat assets are loaded after all initializations
+        loadCombatAssets();
     }
 
     @Override

@@ -72,7 +72,7 @@ public abstract class Player {
         currentAnimation = walkDownAnimation;
 
         position = new Vector2(x, y);
-        speed = 250f;
+        speed = 125f;
         stateTime = 0f;
 
         boundingBox = new Rectangle(position.x, position.y, CHARACTER_WIDTH, CHARACTER_HEIGHT);
@@ -175,7 +175,7 @@ public abstract class Player {
     public void setState(PlayerState newState) {
         if (state != newState) {
             state = newState;
-            stateTime = 0f;  // Reset stateTime on state change
+            stateTime = 0f;
         }
     }
 

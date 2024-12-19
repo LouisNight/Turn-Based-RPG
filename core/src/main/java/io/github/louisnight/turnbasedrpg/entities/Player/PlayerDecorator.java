@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public abstract class PlayerDecorator extends Player {
 
-    protected Player decoratedPlayer;  // Reference to the player being decorated
+    protected Player decoratedPlayer;
 
     public PlayerDecorator(Player decoratedPlayer) {
         super(decoratedPlayer.getPosition().x, decoratedPlayer.getPosition().y, decoratedPlayer.getName());

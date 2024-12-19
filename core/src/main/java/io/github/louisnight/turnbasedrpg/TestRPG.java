@@ -20,13 +20,12 @@ public class TestRPG extends Game {
     public void create() {
         preferences = new AppPreferences();
 
-        // Initialize screens (but don't display yet)
+
         loadingScreen = new LoadingScreen(this);
         menuScreen = new MenuScreen(this);  // Initialize MenuScreen
         gameScreen = new DungeonScreen(this);
         endScreen = new EndScreen(this);
 
-        // Set the initial screen (menu screen)
         setScreen(menuScreen);  // Start at the menu screen
     }
 
@@ -38,12 +37,10 @@ public class TestRPG extends Game {
         return gameScreen;
     }
 
-    // Return to overworld after winning combat
     public void returnToOverworldWithWin() {
         gameScreen.returnToOverworldWithWin();
     }
 
-    // Return to overworld after losing combat
     public void returnToOverworldWithLoss() {
         gameScreen.returnToOverworldWithLoss();
     }
@@ -57,9 +54,9 @@ public class TestRPG extends Game {
         if (getScreen() != null) {
             getScreen().hide();
             if (getScreen() instanceof OptionsScreen) {
-                ((OptionsScreen) getScreen()).dispose(); // Dispose of OptionsScreen explicitly
+                ((OptionsScreen) getScreen()).dispose();
             }
-        } // Hide the current screen
+        }
 
         switch (screen) {
             case MENU:
@@ -67,7 +64,7 @@ public class TestRPG extends Game {
                 setScreen(menuScreen);
                 break;
             case PREFERENCES:
-                setScreen(new OptionsScreen(this, getScreen())); // Pass the current screen as the return screen
+                setScreen(new OptionsScreen(this, getScreen()));
                 break;
             case APPLICATION:
                 if (gameScreen == null) gameScreen = new DungeonScreen(this);
@@ -87,7 +84,6 @@ public class TestRPG extends Game {
         if (endScreen != null) endScreen.dispose();
 
         if (preferences != null) {
-            // If AppPreferences uses external resources, clean them up
         }
 
         super.dispose();
