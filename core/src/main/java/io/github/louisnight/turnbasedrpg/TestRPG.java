@@ -1,13 +1,11 @@
 package io.github.louisnight.turnbasedrpg;
 
 import com.badlogic.gdx.Game;
-import io.github.louisnight.turnbasedrpg.entities.Enemy;
 import io.github.louisnight.turnbasedrpg.views.*;
 
 public class TestRPG extends Game {
 
     private LoadingScreen loadingScreen;
-    private OptionsScreen optionsScreen;
     private GameScreen gameScreen;
     private EndScreen endScreen;
     private MenuScreen menuScreen;
@@ -26,16 +24,23 @@ public class TestRPG extends Game {
         loadingScreen = new LoadingScreen(this);
         menuScreen = new MenuScreen(this);  // Initialize MenuScreen
         gameScreen = new GameScreen(this);
-        optionsScreen = new OptionsScreen(this);
         endScreen = new EndScreen(this);
 
         // Set the initial screen (menu screen)
         setScreen(menuScreen);  // Start at the menu screen
     }
 
+    public MenuScreen getMenuScreen() {
+        return menuScreen;
+    }
+
+    public GameScreen getGameScreen() {
+        return gameScreen;
+    }
+
     // Return to overworld after winning combat
-    public void returnToOverworldWithWin(Enemy defeatedEnemy) {
-        gameScreen.returnToOverworldWithWin(defeatedEnemy);
+    public void returnToOverworldWithWin() {
+        gameScreen.returnToOverworldWithWin();
     }
 
     // Return to overworld after losing combat
@@ -49,22 +54,28 @@ public class TestRPG extends Game {
 
     // Change screen based on user action
     public void changeScreen(int screen) {
+        if (getScreen() != null) {
+            getScreen().hide();
+            if (getScreen() instanceof OptionsScreen) {
+                ((OptionsScreen) getScreen()).dispose(); // Dispose of OptionsScreen explicitly
+            }
+        } // Hide the current screen
+
         switch (screen) {
             case MENU:
                 if (menuScreen == null) menuScreen = new MenuScreen(this);
-                setScreen(menuScreen);  // Go back to the main menu
+                setScreen(menuScreen);
                 break;
             case PREFERENCES:
-                if (optionsScreen == null) optionsScreen = new OptionsScreen(this);
-                setScreen(optionsScreen);  // Go to the preferences/options screen
+                setScreen(new OptionsScreen(this, getScreen())); // Pass the current screen as the return screen
                 break;
             case APPLICATION:
                 if (gameScreen == null) gameScreen = new GameScreen(this);
-                setScreen(gameScreen);  // Start the game (go to game screen)
+                setScreen(gameScreen);
                 break;
             case ENDGAME:
                 if (endScreen == null) endScreen = new EndScreen(this);
-                setScreen(endScreen);  // Show endgame screen
+                setScreen(endScreen);
                 break;
         }
     }
@@ -73,7 +84,6 @@ public class TestRPG extends Game {
         if (loadingScreen != null) loadingScreen.dispose();
         if (menuScreen != null) menuScreen.dispose();
         if (gameScreen != null) gameScreen.dispose();
-        if (optionsScreen != null) optionsScreen.dispose();
         if (endScreen != null) endScreen.dispose();
 
         if (preferences != null) {

@@ -55,19 +55,19 @@ public class MenuScreen implements Screen {
             }
         });
 
-        // Listener for "New Game" button
         newGame.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                parent.changeScreen(TestRPG.APPLICATION);  // Start the game
+                parent.changeScreen(TestRPG.APPLICATION); // Use changeScreen to switch screens
             }
         });
 
-        // Listener for "Preferences" button
+
+        // Listener for "OPTIONS" button
         preferences.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                parent.changeScreen(TestRPG.PREFERENCES);  // Open options screen
+                parent.setScreen(new OptionsScreen(parent, MenuScreen.this));  // Open options screen
             }
         });
     }
@@ -96,11 +96,14 @@ public class MenuScreen implements Screen {
     public void resume() {}
 
     @Override
-    public void hide() {}
+    public void hide() {
+
+    }
 
     @Override
     public void dispose() {
-        // Dispose of the stage to free resources
-        stage.dispose();
+        if (stage != null) {
+            stage.dispose(); // Dispose of stage only
+        }
     }
 }

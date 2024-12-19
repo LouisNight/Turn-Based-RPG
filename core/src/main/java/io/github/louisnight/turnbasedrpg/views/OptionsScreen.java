@@ -23,10 +23,12 @@ public class OptionsScreen implements Screen {
     private Label musicOnOffLabel;
     private Label soundOnOffLabel;
     private final Stage stage = new Stage(new ScreenViewport());
+    private Screen returnScreen;
 
     // constructor with core/main argument
-    public OptionsScreen(TestRPG testRPG) {
+    public OptionsScreen(TestRPG testRPG, Screen returnScreen) {
         parent = testRPG;
+        this.returnScreen = returnScreen;
 
         stage.clear();
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
@@ -36,6 +38,8 @@ public class OptionsScreen implements Screen {
 
     @Override
     public void show() {
+        Gdx.input.setInputProcessor(stage);
+        System.out.println("Input Processor set to: " + stage);
         stage.clear();
         Skin skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
 
@@ -71,14 +75,23 @@ public class OptionsScreen implements Screen {
         });
 
         // return to main screen button
-        final TextButton backButton = new TextButton("Back", skin); // the extra argument here "small" is used to set the button to the smaller version instead of the big default version
+        final TextButton backButton = new TextButton("Back", skin);
+
         backButton.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                parent.changeScreen(TestRPG.MENU);
+            public void changed(ChangeEvent event, Actor actor) {
+                if (returnScreen instanceof EscMenuScreen) {
+                    EscMenuScreen escMenu = (EscMenuScreen) returnScreen;
+                    escMenu.closeOptionsMenu(); // Reset options menu state
+                }
+                Gdx.input.setInputProcessor(returnScreen instanceof EscMenuScreen
+                    ? ((EscMenuScreen) returnScreen).getStage()
+                    : null); // Set input processor to the returning screen
+                parent.setScreen(returnScreen);
             }
         });
 
+        stage.addActor(backButton);
 
         Table table = new Table();
         table.setFillParent(true);
@@ -115,7 +128,6 @@ public class OptionsScreen implements Screen {
         table.add(backButton).colspan(2);
 
         stage.addActor(table);
-        Gdx.input.setInputProcessor(stage);
     }
 
     private void toggleFullscreen() {
@@ -158,11 +170,16 @@ public class OptionsScreen implements Screen {
 
     @Override
     public void hide() {
-
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); // Clear the screen
+        stage.clear();
+        Gdx.input.setInputProcessor(null);
+        System.out.println("OptionsScreen: Hiding and clearing stage");
     }
 
     @Override
     public void dispose() {
+        System.out.println("OptionsScreen: Disposing stage");
         stage.dispose();
     }
 }

@@ -9,8 +9,8 @@ import java.util.ArrayList;
 
 public class ImplementPlayer extends Player {
 
-    public ImplementPlayer(float x, float y) {
-        super(x, y);
+    public ImplementPlayer(String name, float x, float y) {
+        super(x, y, name);
     }
 
     @Override

@@ -5,8 +5,11 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+
+import java.util.ArrayList;
 
 public class HeavyOrc extends Enemy {
     private Vector2 direction;
@@ -14,12 +17,18 @@ public class HeavyOrc extends Enemy {
     private float directionDuration;
     private EnemyState state;
 
-    public HeavyOrc(float x, float y) {
-        super(x, y);
+    protected float health;
+    protected float maxHealth;
 
+    public HeavyOrc(float x, float y) {
+        super(x, y, 120f);
+        state = EnemyState.IDLE;
         texture = new Texture("../assets/Enemies/orc3_walk_full.png");
         loadCombatAssets();
-        boundingBox.setSize(25, 25);
+
+        float spriteWidth = 64f; // Assuming each frame is 64x64
+        float spriteHeight = 64f;
+        boundingBox.setSize(spriteWidth * 0.6f, spriteHeight * 0.6f); // Adjust proportionally
 
         TextureRegion[][] tmpFrames = TextureRegion.split(texture, 64, 64);
         walkDownAnimation = new Animation<TextureRegion>(0.1f, tmpFrames[0]);
@@ -41,6 +50,12 @@ public class HeavyOrc extends Enemy {
     }
 
     @Override
+    protected void initializeStats() {
+        maxHealth = 100f;
+        health = maxHealth;
+    }
+
+    @Override
     public void loadCombatAssets() {
 
         // ATTACK ANIMATION
@@ -54,8 +69,11 @@ public class HeavyOrc extends Enemy {
 
         Array<TextureRegion> attackFrames = new Array<>(thirdRowFramesAttack);
 
-        attackAnimation = new Animation<>(0.1f, attackFrames, Animation.PlayMode.LOOP);
+        attackAnimation = new Animation<>(0.1f, attackFrames, Animation.PlayMode.NORMAL);
 
+        if (attackAnimation == null) {
+            System.out.println("Attack animation for HeavyOrc is not initialized!");
+        }
         // IDLE ANIMATION
         Texture idleSpriteSheet = new Texture("../assets/Enemies/orc3_idle_full.png");
         int idleFrameCols = 4;
@@ -80,7 +98,7 @@ public class HeavyOrc extends Enemy {
 
         Array<TextureRegion> frames = new Array<>(thirdRowFramesHurt);
 
-        hurtAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.LOOP);
+        hurtAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.NORMAL);
 
 
         // DEATH ANIMATION
@@ -94,7 +112,7 @@ public class HeavyOrc extends Enemy {
 
         Array<TextureRegion> deathFrames = new Array<>(thirdRowFramesDeath);
 
-        deathAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.LOOP);
+        deathAnimation = new Animation<>(0.1f, frames, Animation.PlayMode.NORMAL);
 
         if (idleAnimation == null) {
             System.out.println("Idle animation for Orc is not initialized!");
@@ -105,21 +123,11 @@ public class HeavyOrc extends Enemy {
 
 
     @Override
-    public void update(float delta) {
-        stateTime += delta;  // Track the time for animation frames
-
-        if (state != EnemyState.DEAD) {
-            // If no action is happening, default to IDLE
-            if (state != EnemyState.ATTACKING && state != EnemyState.HURT) {
-                state = EnemyState.IDLE;
-            }
-
-            // Movement or action logic
-            position.x += direction.x * speed * delta;
-            position.y += direction.y * speed * delta;
-            updateBoundingBox();  // Ensure the hitbox is updated with position
-        }
+    public void update(float delta, ArrayList<Rectangle> collisionRectangles) {
+        super.update(delta, collisionRectangles); // Call the parent class's update method
     }
+
+
 
 
     @Override
