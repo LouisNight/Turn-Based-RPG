@@ -3,6 +3,7 @@ package io.github.louisnight.turnbasedrpg.views;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -35,7 +36,7 @@ import io.github.louisnight.turnbasedrpg.ui.HealthBar;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GameScreen implements Screen {
+public class OverworldScreen implements Screen {
 
     private TestRPG parent;
     private OrthographicCamera camera;
@@ -64,8 +65,10 @@ public class GameScreen implements Screen {
     private Vector2 lastPlayerPosition;
     private Vector2 lastEnemyPosition;
     private ShapeRenderer shapeRenderer;
+    private Rectangle screenTransitionTrigger;  // Invisible trigger
 
-    public GameScreen(TestRPG testRPG) {
+
+    public OverworldScreen(TestRPG testRPG) {
         this.parent = testRPG;
 
         collisionRectangles = new ArrayList<>();
@@ -75,13 +78,18 @@ public class GameScreen implements Screen {
         viewport = new FitViewport(400, 300, camera);
 
         // Initialize player
-        player = new ImplementPlayer("Player1", 800, 570);
+        player = new ImplementPlayer("Player1", 464, 752);
         player.setMaxHealth(100);
         player.setHealth(100);
+
+
 
         // Center the camera on the player
         camera.position.set(player.getPosition().x, player.getPosition().y, 0);
         camera.update();
+
+        // Initialize the screen transition trigger (invisible rectangle)
+        screenTransitionTrigger = new Rectangle(1568, 864, 32, 16); // Adjust the position and size as needed
 
         // Initialize batch and ShapeRenderer
         batch = new SpriteBatch();
@@ -91,13 +99,16 @@ public class GameScreen implements Screen {
         enemies = new ArrayList<>();
         spawnEnemies();
 
+        map = new TmxMapLoader().load("Maps/OverworldMap.tmx");
+        mapRenderer = new OrthogonalTiledMapRenderer(map);
+
         // Initialize world
         world = new World(new Vector2(0, 0), true);
 
         // Initialize UI and health bar
         skin = new Skin(Gdx.files.internal("skin/pixthulhu-ui.json"));
         uiStage = new Stage(new ScreenViewport());
-        inventory = new Inventory(skin);
+        inventory = new Inventory(skin, uiStage);
 
         Texture healthBarFrameTexture = new Texture("../assets/UI/Health_01_16x16.png");
         Texture healthBarRedTexture = new Texture("../assets/UI/Health_01_Bar01_16x16.png");
@@ -110,7 +121,7 @@ public class GameScreen implements Screen {
 
         // Initialize chests
         chestManager = new ChestManager("chests.json");
-        chests = chestManager.getChestsForArea("Dungeon1");
+        chests = chestManager.getChestsForArea("Overworld");
 
         // Initialize ESC menu stage
         escMenuScreen = new EscMenuScreen(parent, player);
@@ -147,16 +158,6 @@ public class GameScreen implements Screen {
     }
 
     private void spawnEnemies() {
-        enemies.add(EnemyFactory.createEnemy("orc", 1280, 659));
-        enemies.add(EnemyFactory.createEnemy("orc", 2279, 623));
-        enemies.add(EnemyFactory.createEnemy("orc", 715, 613));
-        enemies.add(EnemyFactory.createEnemy("orc", 3028, 1155));
-
-        enemies.add(EnemyFactory.createEnemy("heavyorc",2221, 875));
-        enemies.add(EnemyFactory.createEnemy("heavyorc", 1757, 776));
-        enemies.add(EnemyFactory.createEnemy("heavyorc", 1300, 670));
-
-        enemies.add(EnemyFactory.createEnemy("dungeonboss", 1255, 1041));
     }
 
     public Vector2 getPlayerPosition() {
@@ -290,15 +291,20 @@ public class GameScreen implements Screen {
             isEscMenuOpen = !isEscMenuOpen;
             isInventoryOpen = false; // Close inventory if ESC menu is opened
             Gdx.input.setInputProcessor(isEscMenuOpen ? escMenuScreen.getStage() : uiStage);
-            System.out.println("Input Processor Set to: " + (isEscMenuOpen ? "ESC Menu Stage" : isInventoryOpen ? "Inventory Stage" : "UI Stage"));
+            System.out.println("Input Processor Set to: " + (isEscMenuOpen ? "ESC Menu Stage" : "UI Stage"));
             return; // Exit early to avoid other inputs being processed
         }
 
         // Toggle inventory
         if (Gdx.input.isKeyJustPressed(Input.Keys.I) && !isEscMenuOpen) {
             isInventoryOpen = !isInventoryOpen;
-            if (isInventoryOpen) inventory.show();
-            else inventory.hide();
+            if (isInventoryOpen) {
+                inventory.show(); // Show the inventory
+                Gdx.input.setInputProcessor(inventory.getStage()); // Set input processor to the inventory stage
+            } else {
+                inventory.hide(); // Hide the inventory
+                Gdx.input.setInputProcessor(uiStage); // Return to the main UI stage
+            }
             return;
         }
 
@@ -314,71 +320,138 @@ public class GameScreen implements Screen {
     }
 
 
+
+
     @Override
     public void render(float delta) {
+        // If the ESC menu is open, render it and handle input for ESC menu
         if (isEscMenuOpen) {
             escMenuStage.act(delta);
             escMenuStage.draw();
         } else {
+            // Handle player movement and other input if ESC menu is not open
             handleInput(delta);
+
+            // If the inventory is open, handle cycling through items
+            if (isInventoryOpen) {
+                inventory.handleInput();  // This will cycle through the inventory items
+            }
+
+            // Update camera position based on player position
+            camera.position.set(player.getPosition().x, player.getPosition().y, 0);
+            camera.update();
+
+            uiStage.getViewport().apply();
+            playerHealthBar.update(player.getHealth(), player.getMaxHealth());
+
+            // Clear the screen
+            Gdx.gl.glClearColor(0, 0, 0, 1);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+            // Set the camera and render the map
+            batch.setProjectionMatrix(camera.combined);
+            mapRenderer.setView(camera);
+            mapRenderer.render();
+
+            // Render game objects like chests, enemies, and player
+            batch.begin();
+
+            // If inventory is open, render the overlay first
+            if (isInventoryOpen) {
+                inventory.renderOverlay(batch, camera); // Ensure this renders the inventory backdrop
+                new Texture(Gdx.files.internal("UI/inv_backdrop.png"));
+            }
+
+            // Render chests
+            for (Chest chest : chests) {
+                chest.render(batch);
+            }
+
+            // Render the player
+            player.render(batch);
+
+            // Render enemies
+            for (Enemy enemy : enemies) {
+                enemy.update(delta, collisionRectangles);
+                enemy.render(batch);
+            }
+            batch.end();
+
+            // Check for combat triggers (if player encounters enemies)
+            checkCombatTriggers();
         }
-        System.out.println("ESC Menu Open: " + isEscMenuOpen); // Debug log
-        System.out.println("Inventory Open: " + isInventoryOpen); // Debug log
 
-        // Update camera position based on player
-        camera.position.set(player.getPosition().x, player.getPosition().y, 0);
-        camera.update();
-
-        uiStage.getViewport().apply();
-        playerHealthBar.update(player.getHealth(), player.getMaxHealth());
-
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        // Render map
-        batch.setProjectionMatrix(camera.combined);
-        mapRenderer.setView(camera);
-        mapRenderer.render();
-
-        // Render game objects
-        batch.begin();
-        for (Chest chest : chests) chest.render(batch);
-
-        player.render(batch);
-
-        for (Enemy enemy : enemies) {
-            enemy.update(delta, collisionRectangles);
-            enemy.render(batch);
+        // Toggle debug mode on and off
+        if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+            debugMode = !debugMode;
         }
-        batch.end();
 
-        checkCombatTriggers();
+        // If debug mode is on, render debugging info like bounding boxes
+        if (debugMode) {
+            ShapeRenderer shapeRenderer = new ShapeRenderer();
+            shapeRenderer.setProjectionMatrix(camera.combined);
 
-        // Render debug information if enabled
-//        if (debugMode) {
-//            shapeRenderer.setProjectionMatrix(camera.combined);
-//            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-//            shapeRenderer.setColor(Color.RED);
-//            shapeRenderer.rect(player.getBoundingBox().x, player.getBoundingBox().y, player.getBoundingBox().width, player.getBoundingBox().height);
-//            for (Rectangle rect : collisionRectangles) {
-//                shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
-//            }
-//            shapeRenderer.end();
-//        }
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+            shapeRenderer.setColor(Color.RED);
 
+            // Render player bounding box in red
+            Rectangle playerBoundingBox = player.getBoundingBox();
+            shapeRenderer.rect(playerBoundingBox.x, playerBoundingBox.y, playerBoundingBox.width, playerBoundingBox.height);
 
-        if (isEscMenuOpen) {
-            escMenuScreen.render(delta);
-        } else if (isInventoryOpen) {
-            inventory.render(delta);
-        } else {
+            // Render collision rectangles
+            for (Rectangle rect : collisionRectangles) {
+                shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+            }
+
+            shapeRenderer.setColor(Color.BLUE);
+
+            // Render enemy bounding boxes in blue
+            for (Enemy enemy : enemies) {
+                Rectangle enemyBoundingBox = enemy.getBoundingBox();
+                shapeRenderer.rect(enemyBoundingBox.x, enemyBoundingBox.y, enemyBoundingBox.width, enemyBoundingBox.height);
+            }
+            shapeRenderer.end();
+
+            // Show player coordinates when debug mode is on
             Vector2 playerPos = player.getPosition();
             coordinateLabel.setText("Player: (" + (int) playerPos.x + ", " + (int) playerPos.y + ")");
             coordinateLabel.setPosition(10, uiStage.getViewport().getWorldHeight() - 55);
-
-            uiStage.act(delta);
-            uiStage.draw();
+            coordinateLabel.setVisible(true);
+        } else {
+            // Hide coordinates when debug mode is off
+            coordinateLabel.setVisible(false);
         }
+
+        // Handle additional UI rendering (ESC menu or inventory screen)
+        if (isEscMenuOpen) {
+            escMenuScreen.render(delta);  // Render the ESC menu if it's open
+        } else if (isInventoryOpen) {
+            inventory.render(delta);  // Render the inventory UI if it's open
+        } else {
+            uiStage.act(delta);
+            uiStage.draw();  // Draw the main UI stage when neither ESC menu nor inventory is open
+        }
+
+        // Step the physics world
+        world.step(1 / 60f, 6, 2);
+        update(delta);
+    }
+
+
+    public void update(float delta) {
+        for (Chest chest : chests) {
+            if (!chest.isOpened() && player.getBoundingBox().overlaps(new Rectangle(chest.getPosition().x, chest.getPosition().y, 32, 32))) {
+                chest.open();
+                inventory.addItems(chest.getItems());
+                System.out.println("Opened chest and added items: " + chest.getItems());
+            }
+        }
+        // Check if player collides with invisible zone
+        if (player.getBoundingBox().overlaps(screenTransitionTrigger)) {
+            // Transition to the new screen (for example, a new map or area)
+            parent.setScreen(new DungeonScreen(parent)); // Example
+        }
+
     }
 
 
@@ -387,6 +460,8 @@ public class GameScreen implements Screen {
         viewport.update(width, height);
         uiStage.getViewport().update(width, height, true);
         escMenuStage.getViewport().update(width, height, true);
+
+        inventory.resize(width, height);
 
         playerHealthBar.setPosition(10, height - 40);
     }

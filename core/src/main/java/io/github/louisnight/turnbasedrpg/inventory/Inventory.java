@@ -2,88 +2,167 @@ package io.github.louisnight.turnbasedrpg.inventory;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Disposable;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class Inventory implements Screen {
-    private final Stage stage;
-    private final Table inventoryTable;
-    private final Map<String, Texture> itemTextures;
-    private final Array<String> items;
-    private final Skin skin;
+    private Array<String> items; // Items represented as strings (item IDs or names)
+    private Map<String, Texture> itemTextures; // Map item names to textures
+    private Skin skin;
+    private Stage stage;
+    private Table inventoryTable; // To hold the inventory UI layout
+    private boolean isVisible; // Flag to control visibility of the inventory
+    private int selectedItemIndex = 1; // Index to track the selected item
 
-    public Inventory(Skin skin) {
-        this.skin = skin;
-        this.stage = new Stage();
+    public Inventory(Skin skin, Stage stage) {
         this.items = new Array<>();
         this.itemTextures = new HashMap<>();
+        this.skin = skin;
+        this.stage = stage;
 
-        // Set up inventory UI
+        // Initialize inventory layout
         inventoryTable = new Table();
-        inventoryTable.setFillParent(true);
-        inventoryTable.setVisible(false);
-        inventoryTable.debug(); // Enable debug lines for visualization
+        float tableWidth = 200;  // Width of the inventory table
+        float tableHeight = 300; // Height of the inventory table
+
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
+
+        float xPosition = 10; // 10 pixels from the left edge
+        float yPosition = screenHeight - tableHeight - 10; // 10 pixels from the top edge
+
+        inventoryTable.setSize(tableWidth, tableHeight);
+        inventoryTable.setPosition(xPosition, yPosition);
+
+        inventoryTable.top().left();
+
+
+        inventoryTable.setVisible(false); // Initially, the inventory is hidden
+
+        // Add the inventory table to the stage
         stage.addActor(inventoryTable);
 
+        // Load textures for known items
         loadItemTextures();
-        updateInventoryUI();
+
+        // Initialize selected item index
+        selectedItemIndex = 0;
     }
 
     private void loadItemTextures() {
+        // Load textures for your items; make sure these paths are correct
         itemTextures.put("potion", new Texture(Gdx.files.internal("Items/health_potion.png")));
         itemTextures.put("shield", new Texture(Gdx.files.internal("Items/wood_shield.png")));
+        // Add more items as needed
     }
-
-    private void updateInventoryUI() {
-        inventoryTable.clear(); // Clear previous items
-        inventoryTable.top();   // Align table to start from the top
-
-        // Add title row
-        Label titleLabel = new Label("Inventory", skin);
-        titleLabel.setFontScale(1.5f); // Optionally increase the font size
-        inventoryTable.add(titleLabel).colspan(2).padBottom(20).center().row();
-
-        // Add items
-        for (String item : items) {
-            Texture texture = itemTextures.get(item);
-            if (texture != null) {
-                Image itemImage = new Image(texture);
-                itemImage.setSize(50, 50);
-                Label itemNameLabel = new Label(item, skin);
-
-                Table row = new Table();
-                row.add(itemImage).pad(10);
-                row.add(itemNameLabel).pad(10);
-
-                inventoryTable.add(row).fillX().expandX().pad(5).row();
-            }
-        }
-
-        inventoryTable.layout(); // Refresh layout
-    }
-
 
     public void addItem(String item) {
         items.add(item);
         updateInventoryUI();
+        System.out.println("Added item to inventory: " + item);
+    }
+
+    public void addItems(Array<String> newItems) {
+        items.addAll(newItems);
+        updateInventoryUI();
+        System.out.println("Added multiple items to inventory.");
+    }
+
+    private void updateInventoryUI() {
+        // Clear existing UI elements
+        inventoryTable.clear();
+
+        // Render each item in the inventory
+        for (int i = 0; i < items.size; i++) {
+            String item = items.get(i);
+            Texture texture = itemTextures.get(item);
+            if (texture != null) {
+                // Create UI elements for the item
+                Image itemImage = new Image(texture);
+                itemImage.setSize(50, 50);
+                Label itemNameLabel = new Label(item, skin);
+
+                // Add elements to a new row
+                Table rowTable = new Table();
+                rowTable.add(itemImage).pad(10);   // Add item icon
+                rowTable.add(itemNameLabel).pad(10); // Add item name
+
+                // Highlight selected item
+                if (i == selectedItemIndex) {
+                    rowTable.setBackground(new TextureRegionDrawable(new TextureRegion(new Texture("UI/highlight.png"))));
+                }
+
+                // Add the row to the main inventory table
+                inventoryTable.add(rowTable).fillX().expandX().pad(5).row();
+            }
+        }
+    }
+
+    // Toggle the visibility of the inventory UI
+    public void toggleVisibility() {
+        isVisible = !isVisible;
+        inventoryTable.setVisible(isVisible);
     }
 
     public Stage getStage() {
         return stage;
     }
 
-    @Override
-    public void show() {
-        Gdx.input.setInputProcessor(stage);
-        inventoryTable.setVisible(true);
+    public boolean isVisible() {
+        return isVisible;
     }
 
-    @Override
+    // Method to render the inventory background overlay (if needed)
+// Method to render the inventory background overlay (if needed)
+    public void renderOverlay(SpriteBatch batch, OrthographicCamera camera) {
+        if (isVisible) {
+            batch.setProjectionMatrix(camera.combined); // Ensure batch uses the camera's coordinate system
+            batch.begin();
+
+            // Render the backdrop in the correct position with the correct size
+            batch.draw(
+                new Texture(Gdx.files.internal("UI/inv_backdrop.png")),
+                inventoryTable.getX(), // Use the inventory table's X position
+                inventoryTable.getY(), // Use the inventory table's Y position
+                inventoryTable.getWidth(), // Use the inventory table's width
+                inventoryTable.getHeight() // Use the inventory table's height
+            );
+
+            batch.end();
+        }
+    }
+
+
+    public void handleInput() {
+        if (items.size > 0) {
+            if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.W)) {
+                // Scroll up, but prevent selection from going below index 1 (first item)
+                if (selectedItemIndex > 1) {
+                    selectedItemIndex--; // Move selection up
+                }
+                updateInventoryUI(); // Update UI after selection change
+            } else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.S)) {
+                // Scroll down, but prevent selection from going beyond the last item
+                if (selectedItemIndex < items.size - 1) {
+                    selectedItemIndex++; // Move selection down
+                }
+                updateInventoryUI(); // Update UI after selection change
+            }
+        }
+    }
+
+
+
     public void render(float delta) {
         stage.act(delta);
         stage.draw();
@@ -91,26 +170,36 @@ public class Inventory implements Screen {
 
     @Override
     public void resize(int width, int height) {
+        // Update the viewport of the stage to handle resizing
         stage.getViewport().update(width, height, true);
+
+        // Now set the position of the inventory table based on the new window size
+        float tableWidth = inventoryTable.getWidth();
+        float tableHeight = inventoryTable.getHeight();
+
+        // Recalculate position to always be in the top-left corner
+        inventoryTable.setPosition(10, height - tableHeight - 10); // 10px from the top-left corner
     }
 
-    @Override
+
     public void pause() {}
 
-    @Override
-    public void resume() {}
+    public void show() {
+        Gdx.input.setInputProcessor(stage);
+        inventoryTable.setVisible(true);
+    }
 
-    @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
         inventoryTable.setVisible(false);
     }
+
+    public void resume() {}
 
     @Override
     public void dispose() {
         for (Texture texture : itemTextures.values()) {
             texture.dispose();
         }
-        stage.dispose();
     }
 }

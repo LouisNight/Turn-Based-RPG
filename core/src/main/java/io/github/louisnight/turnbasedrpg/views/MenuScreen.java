@@ -58,7 +58,7 @@ public class MenuScreen implements Screen {
         newGame.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                parent.changeScreen(TestRPG.APPLICATION); // Use changeScreen to switch screens
+                parent.setScreen(new OverworldScreen(parent)); // Use changeScreen to switch screens
             }
         });
 

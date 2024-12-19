@@ -6,7 +6,7 @@ import io.github.louisnight.turnbasedrpg.views.*;
 public class TestRPG extends Game {
 
     private LoadingScreen loadingScreen;
-    private GameScreen gameScreen;
+    private DungeonScreen gameScreen;
     private EndScreen endScreen;
     private MenuScreen menuScreen;
     private AppPreferences preferences;
@@ -23,7 +23,7 @@ public class TestRPG extends Game {
         // Initialize screens (but don't display yet)
         loadingScreen = new LoadingScreen(this);
         menuScreen = new MenuScreen(this);  // Initialize MenuScreen
-        gameScreen = new GameScreen(this);
+        gameScreen = new DungeonScreen(this);
         endScreen = new EndScreen(this);
 
         // Set the initial screen (menu screen)
@@ -34,7 +34,7 @@ public class TestRPG extends Game {
         return menuScreen;
     }
 
-    public GameScreen getGameScreen() {
+    public DungeonScreen getGameScreen() {
         return gameScreen;
     }
 
@@ -70,7 +70,7 @@ public class TestRPG extends Game {
                 setScreen(new OptionsScreen(this, getScreen())); // Pass the current screen as the return screen
                 break;
             case APPLICATION:
-                if (gameScreen == null) gameScreen = new GameScreen(this);
+                if (gameScreen == null) gameScreen = new DungeonScreen(this);
                 setScreen(gameScreen);
                 break;
             case ENDGAME:
